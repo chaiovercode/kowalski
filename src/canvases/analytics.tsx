@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Box, Text, useInput, useApp, useStdout } from "ink";
-import { useIPC } from "./calendar/hooks/use-ipc";
+import { useIPC } from "../hooks/use-ipc";
 import type { ViewState, HighlightTarget } from "../ipc/types";
 
 // Theme and types
