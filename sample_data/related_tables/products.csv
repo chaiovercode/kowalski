@@ -1,0 +1,4 @@
+product_id,name,category,price,stock
+PROD001,Widget A,Electronics,50.00,100
+PROD002,Widget B,Electronics,60.00,75
+PROD003,Gadget X,Accessories,60.00,150

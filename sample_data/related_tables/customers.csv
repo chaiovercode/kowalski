@@ -1,0 +1,6 @@
+customer_id,name,email,region,signup_date
+CUST001,Alice Johnson,alice@example.com,North,2023-06-15
+CUST002,Bob Smith,bob@example.com,South,2023-07-20
+CUST003,Carol Williams,carol@example.com,East,2023-08-10
+CUST004,David Brown,david@example.com,West,2023-09-05
+CUST005,Eve Davis,eve@example.com,North,2023-10-01

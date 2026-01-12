@@ -3,9 +3,11 @@ import { describe, test, expect } from "bun:test";
 import { resolve } from "path";
 import { scanDirectory, reconSweep, formatReconResult } from "../commands/recon";
 import { loadDataFile, performAnalysis } from "../commands/analyze";
+import { compareFiles } from "../commands/compare";
 import { getHelpText } from "../commands/help";
 
 const SAMPLE_DATA_DIR = resolve(import.meta.dir, "../../../../sample_data");
+const RELATED_TABLES_DIR = resolve(SAMPLE_DATA_DIR, "related_tables");
 
 describe("commands", () => {
   describe("recon", () => {
@@ -155,6 +157,151 @@ describe("commands", () => {
       test("includes examples", () => {
         const help = getHelpText();
         expect(help).toContain("EXAMPLES");
+      });
+    });
+  });
+
+  describe("compare", () => {
+    describe("compareFiles", () => {
+      test("finds relationships between related tables", async () => {
+        const result = await compareFiles(
+          `${RELATED_TABLES_DIR}/orders.csv`,
+          `${RELATED_TABLES_DIR}/customers.csv`
+        );
+
+        expect(result.success).toBe(true);
+        expect(result.file1).toBe("orders.csv");
+        expect(result.file2).toBe("customers.csv");
+        expect(result.relationships.length).toBeGreaterThan(0);
+
+        // Should find customer_id relationship
+        const customerRel = result.relationships.find(
+          (r) =>
+            r.leftColumn.includes("customer") ||
+            r.rightColumn.includes("customer")
+        );
+        expect(customerRel).toBeDefined();
+      });
+
+      test("finds multiple relationships with product table", async () => {
+        const result = await compareFiles(
+          `${RELATED_TABLES_DIR}/orders.csv`,
+          `${RELATED_TABLES_DIR}/products.csv`
+        );
+
+        expect(result.success).toBe(true);
+        expect(result.relationships.length).toBeGreaterThan(0);
+
+        // Should find product_id relationship
+        const productRel = result.relationships.find(
+          (r) =>
+            r.leftColumn.includes("product") ||
+            r.rightColumn.includes("product")
+        );
+        expect(productRel).toBeDefined();
+      });
+
+      test("returns no relationships for unrelated tables", async () => {
+        const result = await compareFiles(
+          `${RELATED_TABLES_DIR}/customers.csv`,
+          `${RELATED_TABLES_DIR}/unrelated.csv`
+        );
+
+        expect(result.success).toBe(true);
+        expect(result.relationships.length).toBe(0);
+        expect(result.message).toContain("no");
+      });
+
+      test("returns CompareResult structure", async () => {
+        const result = await compareFiles(
+          `${RELATED_TABLES_DIR}/orders.csv`,
+          `${RELATED_TABLES_DIR}/customers.csv`
+        );
+
+        expect(result).toHaveProperty("success");
+        expect(result).toHaveProperty("file1");
+        expect(result).toHaveProperty("file2");
+        expect(result).toHaveProperty("relationships");
+        expect(result).toHaveProperty("message");
+        expect(Array.isArray(result.relationships)).toBe(true);
+      });
+
+      test("handles non-existent file gracefully", async () => {
+        const result = await compareFiles(
+          `/non/existent/file.csv`,
+          `${RELATED_TABLES_DIR}/customers.csv`
+        );
+
+        expect(result.success).toBe(false);
+        expect(result.message).toBeDefined();
+      });
+
+      test("handles empty dataset gracefully", async () => {
+        // Create a temporary empty file for testing
+        const { writeFileSync, unlinkSync } = await import("fs");
+        const emptyFile = `${RELATED_TABLES_DIR}/empty_test.csv`;
+
+        try {
+          writeFileSync(emptyFile, "col1,col2,col3\n");
+          const result = await compareFiles(
+            emptyFile,
+            `${RELATED_TABLES_DIR}/customers.csv`
+          );
+
+          expect(result.success).toBe(false);
+          expect(result.message).toContain("empty");
+        } finally {
+          unlinkSync(emptyFile);
+        }
+      });
+
+      test("relationship type detection works", async () => {
+        const result = await compareFiles(
+          `${RELATED_TABLES_DIR}/orders.csv`,
+          `${RELATED_TABLES_DIR}/customers.csv`
+        );
+
+        expect(result.success).toBe(true);
+        if (result.relationships.length > 0) {
+          const rel = result.relationships[0];
+          expect(["one-to-one", "one-to-many", "many-to-many"]).toContain(
+            rel.type
+          );
+          expect(rel.confidence).toBeGreaterThanOrEqual(0);
+          expect(rel.confidence).toBeLessThanOrEqual(100);
+          expect(rel.matchPercentage).toBeGreaterThanOrEqual(0);
+          expect(rel.matchPercentage).toBeLessThanOrEqual(100);
+        }
+      });
+
+      test("message includes Kowalski voice", async () => {
+        const result = await compareFiles(
+          `${RELATED_TABLES_DIR}/orders.csv`,
+          `${RELATED_TABLES_DIR}/customers.csv`
+        );
+
+        expect(result.message).toBeDefined();
+        // Should have Kowalski-style formatting
+        expect(result.message).toContain("KOWALSKI");
+      });
+
+      test("respects minConfidence option", async () => {
+        const lowConfResult = await compareFiles(
+          `${RELATED_TABLES_DIR}/orders.csv`,
+          `${RELATED_TABLES_DIR}/customers.csv`,
+          { minConfidence: 0 }
+        );
+
+        const highConfResult = await compareFiles(
+          `${RELATED_TABLES_DIR}/orders.csv`,
+          `${RELATED_TABLES_DIR}/customers.csv`,
+          { minConfidence: 90 }
+        );
+
+        // Low confidence should return same or more relationships
+        expect(lowConfResult.relationships.length).toBeGreaterThanOrEqual(
+          highConfResult.relationships.length
+        );
       });
     });
   });

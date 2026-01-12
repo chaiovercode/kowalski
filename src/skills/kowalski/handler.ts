@@ -7,6 +7,7 @@ import {
   reconSweep,
   formatReconResult,
   analyzeFile,
+  compareFiles,
   getHelpText,
 } from "./commands";
 
@@ -120,11 +121,12 @@ export async function kowalskiHandler(args: string[]): Promise<string> {
         );
       }
 
-      // TODO: Implement compare command
-      return kowalskiSay(
-        "status",
-        "Compare command coming soon, Skipper. Stay tuned for Phase 4 implementation."
-      );
+      const detailed = parsed.options?.["detailed"] === true;
+      const result = await compareFiles(parsed.files[0], parsed.files[1], {
+        detailed,
+      });
+
+      return result.message || "";
     }
 
     case "query": {
