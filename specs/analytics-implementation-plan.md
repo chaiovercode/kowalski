@@ -263,25 +263,30 @@ This document outlines the implementation plan for Kowalski Analytics, with refe
 
 **Completed:** 2026-01-13
 **Tests:** 31 passing tests in browser-viz.test.ts
-**Commit:** (pending)
+**Commit:** be73aaf
 
 ---
 
-## Phase 8: MCP & API Integration
+## Phase 8: MCP & API Integration ✅ COMPLETE
 
-### 8.1 MCP Query Support
-- [ ] Implement `/kowalski query <mcp>` handler [Spec §3.1.2, REF: DS-002]
-- [ ] Integrate with Claude Code's MCP system
-- [ ] Parse MCP query results into DataSet format
-- [ ] Handle pagination for large results
-- [ ] Support both direct query and user-provided data
+### 8.1 MCP Query Support ✅
+- [x] `parseFromMCPResult()` for MCP tool response parsing [Spec §3.1.2, REF: DS-002]
+- [x] Auto-detect array location in nested responses (results, data, items, rows, records)
+- [x] Parse MCP query results into DataSet format
+- [x] Handle various input types: arrays, objects, strings, primitives
+- [x] Type inference for columns (string, number, date)
 
-### 8.2 API Integration
-- [ ] Implement REST API fetcher [Spec §3.1.3, REF: DS-003]
-- [ ] Support JSON response parsing
-- [ ] Handle authentication (Bearer token, API key from env)
-- [ ] Implement pagination handling
-- [ ] Convert API response to DataSet format
+### 8.2 API Integration ✅
+- [x] `fetchFromAPI()` for REST API requests [Spec §3.1.3, REF: DS-003]
+- [x] Support JSON response parsing with arrayPath option
+- [x] Handle authentication (Bearer token, API key, Basic auth from env)
+- [x] `fetchPaginated()` for offset, cursor, and page-based pagination
+- [x] `getAuthFromEnv()` for environment-based credentials
+- [x] Convert API response to DataSet format
+
+**Completed:** 2026-01-13
+**Tests:** 33 passing tests in api-loader.test.ts
+**Commit:** (pending)
 
 ---
 
