@@ -1,15 +1,58 @@
 {
-  "name": "@claude-canvas/canvas",
-  "version": "0.1.0",
-  "module": "src/cli.ts",
+  "name": "kowalski-analytics",
+  "version": "1.0.0",
+  "description": "Kowalski Analytics - Data analysis skill for Claude Code",
+  "author": "Vivek",
+  "license": "MIT",
   "type": "module",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "types": "src/index.ts",
   "bin": {
-    "canvas": "src/cli.ts"
+    "kowalski": "src/cli.ts",
+    "kowalski-canvas": "src/cli.ts"
   },
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./analytics": {
+      "import": "./src/canvases/analytics/index.ts",
+      "types": "./src/canvases/analytics/index.ts"
+    },
+    "./insights": {
+      "import": "./src/canvases/analytics/insights.ts",
+      "types": "./src/canvases/analytics/insights.ts"
+    },
+    "./understanding": {
+      "import": "./src/canvases/analytics/understanding.ts",
+      "types": "./src/canvases/analytics/understanding.ts"
+    },
+    "./hypotheses": {
+      "import": "./src/canvases/analytics/hypotheses.ts",
+      "types": "./src/canvases/analytics/hypotheses.ts"
+    },
+    "./browser-viz": {
+      "import": "./src/canvases/analytics/browser-viz.ts",
+      "types": "./src/canvases/analytics/browser-viz.ts"
+    },
+    "./api": {
+      "import": "./src/api/index.ts",
+      "types": "./src/api/index.ts"
+    }
+  },
+  "files": [
+    "src",
+    "commands",
+    "sample_data"
+  ],
   "scripts": {
     "start": "bun run src/cli.ts",
     "show": "bun run src/cli.ts show",
-    "spawn": "bun run src/cli.ts spawn"
+    "spawn": "bun run src/cli.ts spawn",
+    "test": "bun test",
+    "postinstall": "node scripts/setup-command.js || true"
   },
   "dependencies": {
     "commander": "^14.0.2",
@@ -24,5 +67,18 @@
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "analytics",
+    "data-analysis",
+    "kowalski",
+    "eda",
+    "visualization"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vivek/kowalski"
   }
 }

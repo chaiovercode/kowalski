@@ -9,6 +9,27 @@ Analyze data files using Kowalski Analytics.
 /kowalski              # Scans current directory for data files
 ```
 
+## Installation
+
+```bash
+# Install globally with bun
+bun add -g kowalski-analytics
+
+# Or with npm
+npm install -g kowalski-analytics
+
+# Or clone and link locally
+git clone https://github.com/vivek/kowalski.git
+cd kowalski && bun link
+```
+
+After installation, copy this command file to your Claude commands:
+```bash
+cp node_modules/kowalski-analytics/commands/kowalski.md ~/.claude/commands/
+# Or if installed globally:
+kowalski --setup
+```
+
 ## Instructions
 
 When this command is invoked:
@@ -20,12 +41,17 @@ When this command is invoked:
 
 ```typescript
 import { readFileSync } from "fs";
-import { parseCSV, parseJSON, analyzeDataSet } from "/Users/vivek/Code/kowalski/src/canvases/analytics";
-import { generateEDAReport } from "/Users/vivek/Code/kowalski/src/canvases/analytics/insights";
-import { inferSchema } from "/Users/vivek/Code/kowalski/src/canvases/analytics/understanding";
-import { generateHypotheses } from "/Users/vivek/Code/kowalski/src/canvases/analytics/hypotheses";
-import { generateBrowserViz, openBrowserViz } from "/Users/vivek/Code/kowalski/src/canvases/analytics/browser-viz";
-import { spawnAnalytics } from "/Users/vivek/Code/kowalski/src/api";
+import {
+  parseCSV,
+  parseJSON,
+  analyzeDataSet,
+  generateEDAReport,
+  inferSchema,
+  generateHypotheses,
+  generateBrowserViz,
+  openBrowserViz,
+  spawnAnalytics,
+} from "kowalski-analytics";
 
 // 1. Load data
 const content = readFileSync(filePath, "utf-8");

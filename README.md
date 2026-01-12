@@ -1,8 +1,53 @@
-# Kowalski
+# Kowalski Analytics
 
 > "Kowalski, analysis!" - Skipper
 
-A Claude Code plugin for intelligent data analysis with beautiful terminal visualizations.
+A data analysis skill for Claude Code with beautiful terminal visualizations.
+
+## Installation
+
+### Option 1: Install globally (recommended)
+
+```bash
+# With bun (recommended)
+bun add -g kowalski-analytics
+
+# Or with npm
+npm install -g kowalski-analytics
+
+# Then run setup to install the /kowalski slash command
+kowalski setup
+```
+
+### Option 2: Clone and link locally
+
+```bash
+git clone https://github.com/vivek/kowalski.git
+cd kowalski
+bun install
+bun link
+
+# Install the slash command
+bun run src/cli.ts setup
+```
+
+### Option 3: Manual setup
+
+Copy the command file to your Claude commands directory:
+
+```bash
+# After installing the package
+cp node_modules/kowalski-analytics/commands/kowalski.md ~/.claude/commands/
+```
+
+## Usage
+
+Once installed, use the `/kowalski` slash command in Claude Code:
+
+```
+/kowalski sales.csv          # Analyze a specific file
+/kowalski                    # Scan current directory for data files
+```
 
 ## Features
 
@@ -12,24 +57,67 @@ A Claude Code plugin for intelligent data analysis with beautiful terminal visua
 - **Browser Visualizations** - Interactive Plotly dashboards when you need more detail
 - **Works with Any Dataset** - Generic column detection adapts to your data
 
-## Quick Start
+## Programmatic Usage
 
-```bash
-# Install dependencies
-bun install
+```typescript
+import {
+  parseCSV,
+  analyzeDataSet,
+  generateEDAReport,
+  inferSchema,
+  generateHypotheses,
+  spawnAnalytics,
+} from "kowalski-analytics";
 
-# Run analysis on a CSV file
-bun test-analytics.ts your_data.csv
+// Load and analyze data
+const data = parseCSV(csvContent, { name: "sales.csv" });
+const analysis = analyzeDataSet(data);
+const report = generateEDAReport(data, analysis);
+const schema = inferSchema(data);
+const hypotheses = generateHypotheses(data, analysis);
 
-# Test the terminal dashboard
-bun test-eda-dashboard.tsx your_data.csv
+// Spawn the terminal dashboard
+await spawnAnalytics({
+  title: "Sales Analysis",
+  data,
+  analysis,
+  phase: "eda",
+});
 ```
+
+## API Exports
+
+The package exports the following modules:
+
+```typescript
+// Main entry - all exports
+import { ... } from "kowalski-analytics";
+
+// Specific modules
+import { ... } from "kowalski-analytics/analytics";
+import { ... } from "kowalski-analytics/insights";
+import { ... } from "kowalski-analytics/browser-viz";
+import { ... } from "kowalski-analytics/api";
+```
+
+### Core Functions
+
+| Function | Description |
+|----------|-------------|
+| `parseCSV(content, options)` | Parse CSV content into a DataSet |
+| `parseJSON(content, options)` | Parse JSON content into a DataSet |
+| `analyzeDataSet(data)` | Run statistical analysis on data |
+| `generateEDAReport(data, analysis)` | Generate intelligent insights report |
+| `inferSchema(data)` | Infer semantic types for columns |
+| `generateHypotheses(data, analysis)` | Generate testable hypotheses |
+| `generateBrowserViz(data, analysis)` | Generate interactive HTML visualization |
+| `spawnAnalytics(config)` | Spawn terminal dashboard in tmux |
 
 ## Terminal Dashboard
 
 The EDA dashboard displays:
 
-**Left Panel - Claude's Analysis:**
+**Left Panel - Analysis:**
 - Dataset overview (rows, columns, data quality)
 - Variable summary with statistics
 - Synthetic data detection
@@ -67,31 +155,6 @@ KEY FINDINGS                                    │ CORRELATIONS
 ╰──────────────────────────────────────────────╯│
 ```
 
-## Project Structure
-
-```
-kowalski/
-├── src/
-│   ├── canvases/
-│   │   ├── analytics/
-│   │   │   ├── components/
-│   │   │   │   ├── eda-dashboard.tsx   # Main terminal dashboard
-│   │   │   │   ├── braille-charts.tsx  # High-res terminal charts
-│   │   │   │   └── ...
-│   │   │   ├── insights.ts             # Intelligent EDA engine
-│   │   │   ├── data-loader.ts          # CSV/JSON parsing
-│   │   │   ├── stats.ts                # Statistical analysis
-│   │   │   ├── browser-viz.ts          # Plotly visualizations
-│   │   │   └── theme.ts                # Cyberpunk color theme
-│   │   └── analytics.tsx               # Main canvas component
-│   ├── api/                            # Canvas spawning API
-│   ├── ipc/                            # Inter-process communication
-│   └── cli.ts                          # CLI entry point
-├── skills/                             # Claude Code skill definitions
-├── sample_data/                        # Example datasets
-└── package.json
-```
-
 ## Intelligent Analysis
 
 Kowalski doesn't just show stats - it thinks like a data scientist:
@@ -111,50 +174,34 @@ Kowalski doesn't just show stats - it thinks like a data scientist:
 
 - **Actionable Insights** - Provides a "Bottom Line" summary with recommendations
 
-## Usage in Claude Code
-
-```typescript
-import { parseCSV, analyzeDataSet, generateEDAReport } from "./src/canvases/analytics";
-import { spawnAnalytics } from "./src/api";
-
-// Load and analyze data
-const data = parseCSV(csvContent, { name: "sales.csv" });
-const analysis = analyzeDataSet(data);
-
-// Spawn the analytics canvas
-await spawnAnalytics({
-  title: "Sales Analysis",
-  data,
-  analysis,
-  phase: "eda",
-});
-```
-
-## Other Canvas Types
-
-Kowalski also includes additional interactive terminal canvases:
-
-| Canvas | Description |
-|--------|-------------|
-| `analytics` | Data analysis with EDA dashboard |
-| `calendar` | Display events, pick meeting times |
-| `document` | View/edit markdown documents |
-| `flight` | Compare flights and select seats |
-
-## Tech Stack
-
-- **Bun** - Runtime and package manager
-- **React + Ink** - Terminal UI rendering
-- **Plotly.js** - Browser visualizations
-- **TypeScript** - Type safety
-
 ## Requirements
 
 - **Bun** - Runtime for CLI commands
 - **tmux** - For canvas split panes (auto-starts if not in tmux)
 - **Terminal with Unicode support** - For braille charts
 
-**Note:** For the best experience, run `tmux && claude`. If you're not in tmux, a new terminal window with tmux will open automatically when canvas spawns.
+**Tip:** For the best experience, run `tmux && claude`. If you're not in tmux, a new terminal window with tmux will open automatically.
+
+## Project Structure
+
+```
+kowalski/
+├── src/
+│   ├── index.ts                 # Main entry point
+│   ├── canvases/
+│   │   └── analytics/           # Analytics canvas
+│   │       ├── components/      # Terminal UI components
+│   │       ├── insights.ts      # Intelligent EDA engine
+│   │       ├── data-loader.ts   # CSV/JSON parsing
+│   │       ├── browser-viz.ts   # Plotly visualizations
+│   │       └── ...
+│   ├── api/                     # Canvas spawning API
+│   ├── hooks/                   # Shared React hooks
+│   └── cli.ts                   # CLI entry point
+├── commands/kowalski.md         # Slash command definition
+├── scripts/setup-command.js     # Installation script
+└── sample_data/                 # Example datasets
+```
 
 ## License
 

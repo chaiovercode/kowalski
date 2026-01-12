@@ -8,8 +8,8 @@ function setWindowTitle(title: string) {
 }
 
 program
-  .name("claude-canvas")
-  .description("Interactive terminal canvases for Claude")
+  .name("kowalski")
+  .description("Kowalski Analytics - Data analysis for Claude Code")
   .version("1.0.0");
 
 program
@@ -210,6 +210,14 @@ program
       console.error(`Failed to get content from canvas '${id}':`, err);
       process.exit(1);
     }
+  });
+
+program
+  .command("setup")
+  .description("Install the /kowalski slash command for Claude Code")
+  .action(async () => {
+    const { setup } = await import("../scripts/setup-command.js");
+    setup();
   });
 
 program.parse();
