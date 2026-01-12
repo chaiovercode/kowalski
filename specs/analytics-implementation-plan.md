@@ -107,13 +107,17 @@ This document outlines the implementation plan for Kowalski Analytics, with refe
 **Tests:** 40 passing tests in `src/canvases/analytics/__tests__/enhanced-stats.test.ts`
 **Commit:** 5622871
 
-### 3.3 Analysis Brain Interface
-- [ ] Create `brain.ts` as central analysis orchestrator [Spec §5.3]
-- [ ] Implement `analyze(data)` with full pipeline
-- [ ] Implement `inferSchema(data)` with confidence
-- [ ] Implement `generateHypotheses(analysis)`
-- [ ] Implement `testHypothesis(data, hypothesis)`
-- [ ] Wire up to existing `insights.ts` for EDA report
+### 3.3 Analysis Brain Interface ✅
+- [x] Create `brain.ts` as central analysis orchestrator [Spec §5.3]
+- [x] Implement `analyze(data)` with full pipeline
+- [x] Implement `inferSchema(data)` with confidence
+- [x] Implement `generateHypotheses(analysis)`
+- [x] Implement `testHypothesis(data, hypothesis)`
+- [x] Wire up to existing `insights.ts` for EDA report
+
+**Completed:** 2026-01-13
+**Tests:** 22 passing tests in `src/canvases/analytics/__tests__/brain.test.ts`
+**Commit:** f72a74b
 
 ---
 
