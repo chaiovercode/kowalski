@@ -6,7 +6,12 @@ When users ask to analyze data, load CSV/JSON files, or create visualizations, s
 
 ## Spawning the Canvas (REQUIRED)
 
-**You MUST be in a tmux session for the canvas to work.**
+**Canvas uses tmux for split panes.** If not already in tmux, a new terminal window with tmux will open automatically.
+
+Best experience: Run `claude` inside tmux for seamless split panes:
+```bash
+tmux && claude
+```
 
 ```typescript
 import { readFileSync } from "fs";

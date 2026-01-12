@@ -262,17 +262,103 @@ export function sampleDataSet(data: DataSet, maxRows: number = 1000): DataSet {
 }
 
 /**
- * Get column values as array
+ * Get column values as array (cached for performance)
  */
+// Using Map instead of WeakMap for explicit cache management
+const columnCache = new Map<DataSet, (string | number | null)[][]>();
+
 export function getColumnValues(data: DataSet, columnIndex: number): (string | number | null)[] {
-  return data.rows.map((row) => row[columnIndex]);
+  let cachedColumns = columnCache.get(data);
+  if (!cachedColumns) {
+    cachedColumns = [];
+    columnCache.set(data, cachedColumns);
+  }
+
+  if (!cachedColumns[columnIndex]) {
+    cachedColumns[columnIndex] = data.rows.map((row) => row[columnIndex]);
+  }
+
+  return cachedColumns[columnIndex]!;
 }
 
 /**
- * Get numeric column values (filtered)
+ * Get numeric column values (filtered, cached)
  */
+const numericColumnCache = new Map<DataSet, number[][]>();
+
 export function getNumericColumnValues(data: DataSet, columnIndex: number): number[] {
-  return data.rows
-    .map((row) => row[columnIndex])
-    .filter((val): val is number => typeof val === "number");
+  let cachedNumeric = numericColumnCache.get(data);
+  if (!cachedNumeric) {
+    cachedNumeric = [];
+    numericColumnCache.set(data, cachedNumeric);
+  }
+
+  if (!cachedNumeric[columnIndex]) {
+    cachedNumeric[columnIndex] = data.rows
+      .map((row) => row[columnIndex])
+      .filter((val): val is number => typeof val === "number");
+  }
+
+  return cachedNumeric[columnIndex]!;
+}
+
+/**
+ * Pre-compute and cache all column data for fast access
+ * Call this once at the start of analysis
+ */
+export function cacheColumnData(data: DataSet): void {
+  const numCols = data.columns.length;
+  const cachedColumns: (string | number | null)[][] = new Array(numCols);
+  const cachedNumeric: number[][] = new Array(numCols);
+
+  for (let i = 0; i < numCols; i++) {
+    const colValues: (string | number | null)[] = [];
+    const numValues: number[] = [];
+
+    for (let rowIdx = 0; rowIdx < data.rows.length; rowIdx++) {
+      const val = data.rows[rowIdx][i];
+      colValues.push(val);
+      if (typeof val === "number") {
+        numValues.push(val);
+      }
+    }
+
+    cachedColumns[i] = colValues;
+    cachedNumeric[i] = numValues;
+  }
+
+  columnCache.set(data, cachedColumns);
+  numericColumnCache.set(data, cachedNumeric);
+}
+
+/**
+ * Clear caches (useful when data is modified)
+ */
+export function clearColumnCache(data?: DataSet): void {
+  if (data) {
+    columnCache.delete(data);
+    numericColumnCache.delete(data);
+  } else {
+    columnCache.clear();
+    numericColumnCache.clear();
+  }
+}
+
+/**
+ * Sample data for large datasets - used for performance optimization
+ * Returns a sampled dataset with max the specified number of rows
+ */
+export function sampleForAnalysis(data: DataSet, maxRows: number = 5000): DataSet {
+  if (data.rows.length <= maxRows) {
+    return data;
+  }
+
+  // Stratified sampling: take evenly spaced samples
+  const step = Math.ceil(data.rows.length / maxRows);
+  const sampledRows = data.rows.filter((_, i) => i % step === 0).slice(0, maxRows);
+
+  return {
+    ...data,
+    rows: sampledRows,
+  };
 }

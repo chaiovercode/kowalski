@@ -1,9 +1,10 @@
 // Kowalski Analytics Canvas - Interactive Analysis Dashboard
 // "Kowalski, analysis!" - But first, what do you want to analyze?
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Box, Text, useInput, useApp, useStdout } from "ink";
 import { useIPC } from "./calendar/hooks/use-ipc";
+import type { ViewState, HighlightTarget } from "../ipc/types";
 
 // Theme and types
 import { THEME, formatNumber, ARROWS, BOX } from "./analytics/theme";
@@ -91,8 +92,12 @@ export function AnalyticsCanvas({
   // Config and data
   const [config, setConfig] = useState<AnalyticsConfig | undefined>(initialConfig);
 
-  // UI State
-  const [phase, setPhase] = useState<Phase>("loading");
+  // UI State - initialize phase from config if available
+  const [phase, setPhase] = useState<Phase>(() => {
+    if (initialConfig?.phase) return initialConfig.phase as Phase;
+    if (initialConfig?.analysis) return "eda";
+    return "loading";
+  });
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(0);
   const [scrollOffset, setScrollOffset] = useState(0);
   const [selectedAnalysis, setSelectedAnalysis] = useState<string | null>(null);
@@ -104,6 +109,53 @@ export function AnalyticsCanvas({
     }
     return null;
   }, [config?.data, config?.analysis]);
+
+  // Highlight state for Claude to point at things
+  const [highlights, setHighlights] = useState<HighlightTarget[]>([]);
+
+  // Build current view state - this is what Claude "sees"
+  const buildViewState = useCallback((): ViewState => {
+    const data = config?.data;
+    const insights = edaReport?.findings.map(f => f.title) || [];
+
+    return {
+      phase,
+      currentChart: selectedAnalysis,
+      visibleData: {
+        columns: data?.columns.slice(0, 10) || [],  // First 10 visible columns
+        rowRange: [0, Math.min(100, data?.rows.length || 0)] as [number, number],
+        highlights: highlights.map(h => `${h.type}:${h.id}`),
+      },
+      insights: insights.slice(0, 5),  // Top 5 insights
+      scrollPosition: scrollOffset,
+      selectedAnalysis,
+    };
+  }, [phase, selectedAnalysis, config?.data, edaReport, highlights, scrollOffset]);
+
+  // Handle highlight commands from Claude
+  const handleHighlight = useCallback((target: HighlightTarget) => {
+    setHighlights(prev => {
+      // Remove any existing highlight of the same type/id
+      const filtered = prev.filter(h => !(h.type === target.type && h.id === target.id));
+      return [...filtered, target];
+    });
+
+    // Auto-clear after duration (if specified and not persistent)
+    if (target.duration && target.duration > 0) {
+      setTimeout(() => {
+        setHighlights(prev => prev.filter(h => !(h.type === target.type && h.id === target.id)));
+      }, target.duration);
+    }
+  }, []);
+
+  const handleClearHighlights = useCallback(() => {
+    setHighlights([]);
+  }, []);
+
+  const handleFocus = useCallback((element: string) => {
+    // TODO: Implement scroll-to-element logic
+    console.log("Focus requested:", element);
+  }, []);
 
   // IPC connection
   const ipc = useIPC({
@@ -124,7 +176,24 @@ export function AnalyticsCanvas({
         setPhase("analysis");
       }
     },
+    onGetViewState: buildViewState,
+    onHighlight: handleHighlight,
+    onClearHighlights: handleClearHighlights,
+    onFocus: handleFocus,
   });
+
+  // Send viewState whenever it changes
+  const lastViewStateRef = useRef<string>("");
+  useEffect(() => {
+    const viewState = buildViewState();
+    const viewStateJson = JSON.stringify(viewState);
+
+    // Only send if changed
+    if (viewStateJson !== lastViewStateRef.current) {
+      lastViewStateRef.current = viewStateJson;
+      ipc.sendViewState(viewState);
+    }
+  }, [phase, selectedAnalysis, scrollOffset, config?.data, edaReport, buildViewState, ipc]);
 
   // Listen for terminal resize
   useEffect(() => {

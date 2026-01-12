@@ -1,5 +1,4 @@
-// EDA Dashboard - State of the Art Terminal Visualization
-// Combines Claude's intelligent analysis with inline data visualizations
+// EDA Dashboard - Clean Terminal Visualization
 
 import React from "react";
 import { Box, Text } from "ink";
@@ -18,7 +17,7 @@ interface EDADashboardProps {
   scrollOffset?: number;
 }
 
-// Mini correlation heatmap using colored blocks
+// Correlation heatmap
 function CorrelationHeatmap({
   correlations,
   width = 30,
@@ -34,13 +33,12 @@ function CorrelationHeatmap({
     );
   }
 
-  // Get unique columns and build matrix
   const cols = new Set<string>();
   correlations.forEach((c) => {
     cols.add(c.column1);
     cols.add(c.column2);
   });
-  const colList = Array.from(cols).slice(0, 5); // Max 5 columns
+  const colList = Array.from(cols).slice(0, 5);
 
   const getCorrelation = (c1: string, c2: string) => {
     if (c1 === c2) return 1;
@@ -64,7 +62,6 @@ function CorrelationHeatmap({
 
   return (
     <Box flexDirection="column">
-      {/* Header row */}
       <Box>
         <Text color={THEME.textDim}>{" ".repeat(labelWidth)}</Text>
         {colList.map((col, i) => (
@@ -73,7 +70,6 @@ function CorrelationHeatmap({
           </Text>
         ))}
       </Box>
-      {/* Data rows */}
       {colList.map((rowCol, ri) => (
         <Box key={ri}>
           <Text color={THEME.text}>{truncate(rowCol, labelWidth - 1).padEnd(labelWidth)}</Text>
@@ -81,7 +77,7 @@ function CorrelationHeatmap({
             const val = getCorrelation(rowCol, colCol);
             return (
               <Text key={ci} color={getColor(val)}>
-                {val > 0.8 ? "████ " : val > 0.5 ? "▓▓▓  " : val > 0.2 ? "▒▒   " : val < -0.5 ? "---  " : "░    "}
+                {val > 0.8 ? "### " : val > 0.5 ? "###  " : val > 0.2 ? "##   " : val < -0.5 ? "---  " : ".    "}
               </Text>
             );
           })}
@@ -91,7 +87,7 @@ function CorrelationHeatmap({
   );
 }
 
-// Category distribution bar chart
+// Category bar chart
 function CategoryBars({
   data,
   column,
@@ -109,7 +105,6 @@ function CategoryBars({
   const colIdx = columns.indexOf(column);
   if (colIdx === -1) return null;
 
-  // Aggregate by category
   const metricIdx = metric ? columns.indexOf(metric) : -1;
   const groups = new Map<string, number[]>();
 
@@ -123,7 +118,6 @@ function CategoryBars({
     }
   }
 
-  // Calculate aggregates and sort
   const aggregated = Array.from(groups.entries())
     .map(([label, values]) => ({
       label: truncate(label, 10),
@@ -134,7 +128,6 @@ function CategoryBars({
     .sort((a, b) => b.value - a.value)
     .slice(0, maxBars);
 
-  // Format values for display
   const maxVal = Math.max(...aggregated.map(a => a.value));
   const barWidth = Math.max(10, width - 20);
 
@@ -142,13 +135,13 @@ function CategoryBars({
     <Box flexDirection="column">
       {aggregated.map((item, i) => {
         const barLen = Math.max(1, Math.round((item.value / maxVal) * barWidth));
-        const colors = [THEME.primary, THEME.secondary, "#50fa7b", "#ffb86c", "#bd93f9"];
+        const colors = [THEME.primary, THEME.secondary, THEME.positive, THEME.warning, "#8b5cf6"];
         return (
           <Box key={i}>
             <Text color={THEME.textDim}>{item.label.padEnd(10)}</Text>
-            <Text color={THEME.border}>{BOX.vertical}</Text>
-            <Text color={colors[i % colors.length]}>{"█".repeat(barLen)}</Text>
-            <Text color={colors[i % colors.length]} bold> {formatNumber(item.value)}</Text>
+            <Text color={THEME.border}>|</Text>
+            <Text color={colors[i % colors.length]}>{"#".repeat(barLen)}</Text>
+            <Text color={THEME.textDim}> {formatNumber(item.value)}</Text>
           </Box>
         );
       })}
@@ -156,7 +149,7 @@ function CategoryBars({
   );
 }
 
-// Quick stats sparkline row
+// Quick stat row
 function QuickStatRow({
   label,
   value,
@@ -190,20 +183,18 @@ function QuickStatRow({
   );
 }
 
-// Section header with line
+// Section header
 function SectionHeader({ title, color = THEME.secondary }: { title: string; color?: string }) {
   return (
     <Box marginBottom={0} marginTop={1}>
       <Text color={color} bold>
-        {BOX.horizontal}
-        {BOX.horizontal} {title.toUpperCase()} {BOX.horizontal}
-        {BOX.horizontal}
+        {title}
       </Text>
     </Box>
   );
 }
 
-// Main EDA Dashboard Component
+// Main EDA Dashboard
 export function EDADashboard({
   data,
   analysis,
@@ -214,13 +205,11 @@ export function EDADashboard({
 }: EDADashboardProps) {
   const { statistics, correlations, trends } = analysis;
 
-  // Adjust dimensions for the outer border
   const innerWidth = width - 2;
   const innerHeight = height - 2;
   const leftWidth = Math.floor(innerWidth * 0.55);
   const rightWidth = innerWidth - leftWidth - 1;
 
-  // Find best columns for visualization
   const numericCols = data.columns.filter((_, i) => data.types?.[i] === "number");
   const categoricalCols = report.variables
     .filter((v) => v.type === "categorical" && !v.notable?.includes("garbage"))
@@ -236,7 +225,6 @@ export function EDADashboard({
   const primaryCategory = categoricalCols[0];
   const secondaryCategory = categoricalCols[1];
 
-  // Get sample values for sparklines
   const getColumnSample = (col: string, sampleSize = 50) => {
     const idx = data.columns.indexOf(col);
     if (idx === -1) return [];
@@ -251,7 +239,7 @@ export function EDADashboard({
       flexDirection="column"
       width={width}
       height={height}
-      borderStyle="double"
+      borderStyle="round"
       borderColor={THEME.border}
     >
       <KowalskiHeader
@@ -261,90 +249,60 @@ export function EDADashboard({
       />
 
       <Box flexDirection="row" height={innerHeight - 5}>
-        {/* LEFT PANEL: Claude's Analysis */}
+        {/* LEFT PANEL: Analysis */}
         <Box flexDirection="column" width={leftWidth} paddingRight={1} paddingLeft={1}>
+          <SectionHeader title="The Basics" />
+          <Text color={THEME.text} wrap="wrap">
+            {report.overview.rows.toLocaleString()} rows | {report.overview.columns} columns
+          </Text>
 
-          {/* The Basics */}
-          <Box flexDirection="column" marginBottom={1}>
-            <SectionHeader title="The Basics" />
-            <Text color={THEME.text} wrap="wrap">
-              {report.overview.rows.toLocaleString()} rows {ARROWS.bullet} {report.overview.columns} columns
-              {report.overview.suspiciouslyClean && (
-                <Text color={THEME.warning}> {ARROWS.bullet} suspiciously clean</Text>
-              )}
-            </Text>
-          </Box>
-
-          {/* Variables Summary */}
-          <Box flexDirection="column" marginBottom={1}>
+          <Box flexDirection="column" marginTop={1}>
             <SectionHeader title="Variables" />
             {report.variables.slice(0, 7).map((v, i) => {
-              const icon = v.type === "numeric" ? "#" : ARROWS.diamond;
+              const icon = v.type === "numeric" ? "#" : " ";
               const color = v.type === "numeric" ? THEME.primary : THEME.tertiary;
-              // More compact description
               const desc = v.type === "numeric"
-                ? v.description.replace(/μ=|σ=|range=\[|\]/g, '').replace(/, /g, ' ').replace('-', '→')
-                : v.description;
+                ? `mean: ${statistics?.[v.name]?.mean?.toFixed(1) || "N/A"}`
+                : `${v.uniqueCount} unique`;
               return (
                 <Box key={i}>
-                  <Text color={color}>{icon} </Text>
-                  <Text color={THEME.text}>{truncate(v.name, 14).padEnd(15)}</Text>
+                  <Text color={color}>{icon}</Text>
+                  <Text color={THEME.text}> {truncate(v.name, 15).padEnd(16)}</Text>
                   <Text color={THEME.textDim}>{truncate(desc, leftWidth - 22)}</Text>
-                  {v.notable && <Text color={THEME.warning}> !</Text>}
+                  {v.notable && <Text color={THEME.warning}> *</Text>}
                 </Box>
               );
             })}
-            {report.variables.length > 7 && (
-              <Text color={THEME.textDim}>  +{report.variables.length - 7} more...</Text>
-            )}
           </Box>
 
-          {/* Findings */}
           {report.isSynthetic && (
-            <Box flexDirection="column" marginBottom={1}>
-              <Text color={THEME.warning} bold>
-                {ARROWS.cross} SYNTHETIC DATA DETECTED
-              </Text>
-              {report.syntheticReasons.slice(0, 3).map((reason, i) => (
+            <Box flexDirection="column" marginTop={1}>
+              <Text color={THEME.warning} bold>Synthetic Data Detected</Text>
+              {report.syntheticReasons.slice(0, 2).map((reason, i) => (
                 <Box key={i} marginLeft={1}>
-                  <Text color={THEME.textDim}>{i + 1}. </Text>
-                  <Text color={THEME.text} wrap="wrap">
-                    {truncate(reason, leftWidth - 5)}
-                  </Text>
+                  <Text color={THEME.textDim}>- {truncate(reason, leftWidth - 5)}</Text>
                 </Box>
               ))}
             </Box>
           )}
 
-          {/* Key Findings */}
-          <Box flexDirection="column" marginBottom={1}>
+          <Box flexDirection="column" marginTop={1}>
             <SectionHeader title="Key Findings" />
             {report.findings.slice(0, 4).map((finding, i) => {
-              const icon =
-                finding.severity === "warning"
-                  ? ARROWS.cross
-                  : finding.severity === "success"
-                    ? ARROWS.check
-                    : ARROWS.bullet;
-              const color =
-                finding.severity === "warning"
-                  ? THEME.warning
-                  : finding.severity === "success"
-                    ? THEME.positive
-                    : THEME.textDim;
+              const icon = finding.severity === "warning" ? ARROWS.cross :
+                           finding.severity === "success" ? ARROWS.check : ARROWS.bullet;
+              const color = finding.severity === "warning" ? THEME.warning :
+                            finding.severity === "success" ? THEME.positive : THEME.textDim;
               return (
-                <Box key={i} marginLeft={1}>
+                <Box key={i} marginLeft={0}>
                   <Text color={color}>{icon} </Text>
-                  <Text color={THEME.text} bold>
-                    {truncate(finding.title, 20)}:
-                  </Text>
-                  <Text color={THEME.textDim}> {truncate(finding.description, leftWidth - 25)}</Text>
+                  <Text color={THEME.text} bold>{truncate(finding.title, 18)}: </Text>
+                  <Text color={THEME.textDim}>{truncate(finding.description, leftWidth - 25)}</Text>
                 </Box>
               );
             })}
           </Box>
 
-          {/* Bottom Line */}
           <Box
             flexDirection="column"
             borderStyle="round"
@@ -353,7 +311,7 @@ export function EDADashboard({
             marginTop={1}
           >
             <Text color={report.isSynthetic ? THEME.warning : THEME.positive} bold>
-              BOTTOM LINE
+              Bottom Line
             </Text>
             <Text color={THEME.text} wrap="wrap">
               {report.bottomLine}
@@ -365,39 +323,33 @@ export function EDADashboard({
         <Box flexDirection="column">
           <Text color={THEME.border}>{BOX.vertical}</Text>
           {Array.from({ length: innerHeight - 6 }).map((_, i) => (
-            <Text key={i} color={THEME.border}>
-              {BOX.vertical}
-            </Text>
+            <Text key={i} color={THEME.border}>{BOX.vertical}</Text>
           ))}
         </Box>
 
         {/* RIGHT PANEL: Visualizations */}
         <Box flexDirection="column" width={rightWidth} paddingLeft={1}>
-          {/* Quick Stats */}
-          <Box flexDirection="column" marginBottom={1}>
-            <SectionHeader title="Quick Stats" />
-            {numericCols.slice(0, 3).map((col, i) => {
-              const stats = statistics?.[col];
-              if (!stats || stats.type !== "numeric") return null;
-              const sample = getColumnSample(col);
-              const trend = trends?.find((t) => t.column === col);
-              return (
-                <QuickStatRow
-                  key={i}
-                  label={truncate(col, 9)}
-                  value={formatNumber(stats.mean || 0)}
-                  sparklineData={sample}
-                  trend={trend?.changePercent}
-                  width={rightWidth - 2}
-                />
-              );
-            })}
-          </Box>
+          <SectionHeader title="Quick Stats" />
+          {numericCols.slice(0, 3).map((col, i) => {
+            const stats = statistics?.[col];
+            if (!stats || stats.type !== "numeric") return null;
+            const sample = getColumnSample(col);
+            const trend = trends?.find((t) => t.column === col);
+            return (
+              <QuickStatRow
+                key={i}
+                label={truncate(col, 9)}
+                value={formatNumber(stats.mean || 0)}
+                sparklineData={sample}
+                trend={trend?.changePercent}
+                width={rightWidth - 2}
+              />
+            );
+          })}
 
-          {/* Distribution */}
           {primaryMetric && (
-            <Box flexDirection="column" marginBottom={1}>
-              <SectionHeader title={`DIST: ${truncate(primaryMetric, 10)}`} />
+            <Box flexDirection="column" marginTop={1}>
+              <SectionHeader title={`Distribution: ${truncate(primaryMetric, 12)}`} />
               <Distribution
                 values={getColumnSample(primaryMetric, 500)}
                 bins={15}
@@ -408,10 +360,9 @@ export function EDADashboard({
             </Box>
           )}
 
-          {/* Category Breakdown */}
           {primaryCategory && (
-            <Box flexDirection="column" marginBottom={1}>
-              <SectionHeader title={`BY ${truncate(primaryCategory, 10)}`} />
+            <Box flexDirection="column" marginTop={1}>
+              <SectionHeader title={`By ${truncate(primaryCategory, 12)}`} />
               <CategoryBars
                 data={data}
                 column={primaryCategory}
@@ -422,16 +373,14 @@ export function EDADashboard({
             </Box>
           )}
 
-          {/* Correlation Mini-Matrix */}
           {correlations && correlations.length > 0 && (
-            <Box flexDirection="column" marginBottom={1}>
+            <Box flexDirection="column" marginTop={1}>
               <SectionHeader title="Correlations" />
               <CorrelationHeatmap correlations={correlations} width={rightWidth - 2} />
             </Box>
           )}
 
-          {/* Data Quality Gauge */}
-          <Box flexDirection="column">
+          <Box flexDirection="column" marginTop={1}>
             <SectionHeader title="Data Quality" />
             <Gauge
               value={100 - (analysis.summary?.missingPercent || 0) * 100}

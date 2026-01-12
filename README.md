@@ -151,8 +151,10 @@ Kowalski also includes additional interactive terminal canvases:
 ## Requirements
 
 - **Bun** - Runtime for CLI commands
-- **tmux** - Canvas spawning (optional)
+- **tmux** - For canvas split panes (auto-starts if not in tmux)
 - **Terminal with Unicode support** - For braille charts
+
+**Note:** For the best experience, run `tmux && claude`. If you're not in tmux, a new terminal window with tmux will open automatically when canvas spawns.
 
 ## License
 

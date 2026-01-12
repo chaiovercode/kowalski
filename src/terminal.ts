@@ -1,4 +1,4 @@
-import { spawn, spawnSync } from "child_process";
+import { spawn, spawnSync, execSync } from "child_process";
 
 export interface TerminalEnvironment {
   inTmux: boolean;
@@ -29,10 +29,6 @@ export async function spawnCanvas(
 ): Promise<SpawnResult> {
   const env = detectTerminal();
 
-  if (!env.inTmux) {
-    throw new Error("Canvas requires tmux. Please run inside a tmux session.");
-  }
-
   // Get the directory of this script (skill directory)
   const scriptDir = import.meta.dir.replace("/src", "");
   const runScript = `${scriptDir}/run-canvas.sh`;
@@ -53,10 +49,19 @@ export async function spawnCanvas(
     command += ` --scenario ${options.scenario}`;
   }
 
-  const result = await spawnTmux(command);
-  if (result) return { method: "tmux" };
+  // If in tmux, use split pane (best experience)
+  if (env.inTmux) {
+    const result = await spawnTmux(command);
+    if (result) return { method: "tmux" };
+    throw new Error("Failed to spawn tmux pane");
+  }
 
-  throw new Error("Failed to spawn tmux pane");
+  // Not in tmux - auto-start tmux with canvas in a new terminal window
+  console.log("\n💡 Tip: Run `tmux` then `claude` for split-pane view next time.\n");
+  const result = await spawnWithAutoTmux(command, scriptDir);
+  if (result) return { method: "auto-tmux" };
+
+  throw new Error("Failed to spawn canvas. Please ensure tmux is installed.");
 }
 
 // File to track the canvas pane ID
@@ -90,9 +95,9 @@ async function saveCanvasPaneId(paneId: string): Promise<void> {
 async function createNewPane(command: string): Promise<boolean> {
   return new Promise((resolve) => {
     // Use split-window -h for vertical split (side by side)
-    // -p 67 gives canvas 2/3 width (1:2 ratio, Claude:Canvas)
+    // -p 75 gives canvas 3/4 width for better visualization space
     // -P -F prints the new pane ID so we can save it
-    const args = ["split-window", "-h", "-p", "67", "-P", "-F", "#{pane_id}", command];
+    const args = ["split-window", "-h", "-p", "75", "-P", "-F", "#{pane_id}", command];
     const proc = spawn("tmux", args);
     let paneId = "";
     proc.stdout?.on("data", (data) => {
@@ -142,5 +147,148 @@ async function spawnTmux(command: string): Promise<boolean> {
 
   // Create a new split pane
   return createNewPane(command);
+}
+
+/**
+ * Auto-start tmux with canvas when not already in tmux.
+ * Opens a new terminal window with tmux running the canvas.
+ */
+async function spawnWithAutoTmux(command: string, scriptDir: string): Promise<boolean> {
+  // Check if tmux is installed
+  try {
+    execSync("which tmux", { stdio: "ignore" });
+  } catch {
+    console.error("tmux is not installed. Please install tmux: brew install tmux");
+    return false;
+  }
+
+  const platform = process.platform;
+  const sessionName = `kowalski-canvas-${Date.now()}`;
+
+  if (platform === "darwin") {
+    // macOS - try iTerm2 first, fall back to Terminal.app
+    return spawnMacOSTerminal(command, sessionName);
+  } else {
+    // Linux - try common terminal emulators
+    return spawnLinuxTerminal(command, sessionName);
+  }
+}
+
+async function spawnMacOSTerminal(command: string, sessionName: string): Promise<boolean> {
+  const tmuxCommand = `tmux new-session -s '${sessionName}' '${command.replace(/'/g, "'\\''")}'`;
+
+  // Try Ghostty first (user preference)
+  if (await appExists("com.mitchellh.ghostty")) {
+    const result = await spawnGhostty(tmuxCommand);
+    if (result) return true;
+  }
+
+  // Try iTerm2
+  if (await appExists("com.googlecode.iterm2")) {
+    const result = await spawnITerm(tmuxCommand);
+    if (result) return true;
+  }
+
+  // Fallback to Terminal.app (always available)
+  return spawnTerminalApp(tmuxCommand);
+}
+
+async function appExists(bundleId: string): Promise<boolean> {
+  try {
+    const result = execSync(`mdfind "kMDItemCFBundleIdentifier == '${bundleId}'" 2>/dev/null | head -1`, { encoding: "utf-8" });
+    return result.trim().length > 0;
+  } catch {
+    return false;
+  }
+}
+
+async function spawnGhostty(tmuxCommand: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    // Try ghostty CLI first, then fall back to open -a
+    try {
+      execSync("which ghostty", { stdio: "ignore" });
+      // Ghostty CLI: ghostty -e command
+      const proc = spawn("ghostty", ["-e", "/bin/bash", "-c", tmuxCommand], {
+        detached: true,
+        stdio: "ignore",
+      });
+      proc.unref();
+      setTimeout(() => resolve(true), 300);
+    } catch {
+      // Fall back to open -a with AppleScript for writing command
+      const script = `
+        tell application "Ghostty"
+          activate
+        end tell
+        delay 0.5
+        tell application "System Events"
+          keystroke "${tmuxCommand.replace(/"/g, '\\"')}"
+          keystroke return
+        end tell
+      `;
+      const proc = spawn("osascript", ["-e", script]);
+      proc.on("close", (code) => resolve(code === 0));
+      proc.on("error", () => resolve(false));
+    }
+  });
+}
+
+async function spawnITerm(tmuxCommand: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const script = `
+      tell application "iTerm"
+        activate
+        create window with default profile
+        tell current session of current window
+          write text "${tmuxCommand.replace(/"/g, '\\"')}"
+        end tell
+      end tell
+    `;
+    const proc = spawn("osascript", ["-e", script]);
+    proc.on("close", (code) => resolve(code === 0));
+    proc.on("error", () => resolve(false));
+  });
+}
+
+async function spawnTerminalApp(tmuxCommand: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const proc = spawn("osascript", [
+      "-e", `tell application "Terminal"`,
+      "-e", `activate`,
+      "-e", `do script "${tmuxCommand.replace(/"/g, '\\"')}"`,
+      "-e", `end tell`
+    ]);
+    proc.on("close", (code) => resolve(code === 0));
+    proc.on("error", () => resolve(false));
+  });
+}
+
+async function spawnLinuxTerminal(command: string, sessionName: string): Promise<boolean> {
+  const tmuxCommand = `tmux new-session -s '${sessionName}' '${command.replace(/'/g, "'\\''")}'`;
+
+  // Try common terminal emulators in order of preference
+  const terminals = [
+    { cmd: "gnome-terminal", args: ["--", "bash", "-c", tmuxCommand] },
+    { cmd: "konsole", args: ["-e", "bash", "-c", tmuxCommand] },
+    { cmd: "xfce4-terminal", args: ["-e", tmuxCommand] },
+    { cmd: "xterm", args: ["-e", tmuxCommand] },
+  ];
+
+  for (const term of terminals) {
+    try {
+      execSync(`which ${term.cmd}`, { stdio: "ignore" });
+      return new Promise((resolve) => {
+        const proc = spawn(term.cmd, term.args, { detached: true, stdio: "ignore" });
+        proc.unref();
+        // Give it a moment to start
+        setTimeout(() => resolve(true), 500);
+      });
+    } catch {
+      // Terminal not found, try next
+    }
+  }
+
+  console.error("No supported terminal emulator found. Please run inside tmux.");
+  return false;
 }
 

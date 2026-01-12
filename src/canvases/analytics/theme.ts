@@ -1,45 +1,45 @@
-// Kowalski Analytics Theme - Cyberpunk Data Analyst Aesthetic
-// Inspired by the Flight Booking Terminal design
+// Kowalski Analytics Theme - Clean, Minimal, Professional
+// Simple grayscale theme with clear visual hierarchy
 
 export const THEME = {
-  // Primary colors
-  primary: "#00ffcc",      // Bright cyan/teal (main accent)
-  secondary: "#ff6ac1",    // Magenta/pink (section headers)
-  tertiary: "#7957d5",     // Purple (highlights)
+  // Primary colors - clean and minimal
+  primary: "#3b82f6",      // Blue (main accent)
+  secondary: "#64748b",    // Slate gray (section headers)
+  tertiary: "#8b5cf6",     // Purple (highlights)
 
-  // Data colors
-  positive: "#50fa7b",     // Green (positive changes, success)
-  negative: "#ff5555",     // Red (negative changes, errors)
-  warning: "#ffb86c",      // Orange (warnings)
-  neutral: "#6272a4",      // Muted blue-gray
+  // Semantic colors
+  positive: "#22c55e",     // Green (success, increases)
+  negative: "#ef4444",     // Red (errors, decreases)
+  warning: "#f59e0b",      // Amber (warnings)
+  neutral: "#94a3b8",      // Gray (neutral)
 
-  // Chart palette (vibrant but harmonious)
+  // Chart palette - clean colors
   chart: [
-    "#00ffcc",  // Cyan
-    "#ff6ac1",  // Magenta
-    "#50fa7b",  // Green
-    "#ffb86c",  // Orange
-    "#bd93f9",  // Purple
-    "#8be9fd",  // Light cyan
-    "#f1fa8c",  // Yellow
-    "#ff79c6",  // Pink
+    "#3b82f6",  // Blue
+    "#22c55e",  // Green
+    "#f59e0b",  // Amber
+    "#ef4444",  // Red
+    "#8b5cf6",  // Purple
+    "#ec4899",  // Pink
+    "#14b8a6",  // Teal
+    "#f97316",  // Orange
   ],
 
   // UI colors
-  background: "#1a1a2e",   // Dark blue-black
-  surface: "#16213e",      // Slightly lighter
-  border: "#3d5a80",       // Soft blue border
-  borderFocus: "#00ffcc",  // Cyan when focused
-  borderDim: "#2a2a4a",    // Very dim border
+  background: "transparent",
+  surface: "transparent",
+  border: "#374151",       // Dark gray border
+  borderFocus: "#3b82f6",
+  borderDim: "#9ca3af",
 
   // Text colors
-  text: "#f8f8f2",         // Off-white
-  textDim: "#6272a4",      // Dimmed text
-  textBright: "#ffffff",   // Pure white for emphasis
+  text: "#f9fafb",         // Near white
+  textDim: "#9ca3af",      // Gray for secondary text
+  textBright: "#ffffff",   // Pure white
 
   // Special
-  highlight: "#44475a",    // Selection/highlight background
-  selection: "#00ffcc33",  // Selection with transparency
+  highlight: "#1f2937",
+  selection: "#3b82f633",
 } as const;
 
 // Box drawing characters for clean UI
@@ -85,15 +85,15 @@ export const SPARK = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"] as
 
 // Arrow and indicator characters
 export const ARROWS = {
-  up: "▲",
-  down: "▼",
-  right: "▶",
-  left: "◀",
+  up: "↑",
+  down: "↓",
+  right: "→",
+  left: "←",
   upSmall: "↑",
   downSmall: "↓",
   rightSmall: "→",
   leftSmall: "←",
-  bullet: "•",
+  bullet: "·",
   diamond: "◆",
   circle: "●",
   circleEmpty: "○",
@@ -105,38 +105,25 @@ export const ARROWS = {
   starEmpty: "☆",
 } as const;
 
-// Penguin ASCII art variations
+// Penguin ASCII art - minimal
 export const PENGUIN = {
-  // Minimal inline penguin
   mini: "🐧",
-
-  // Small penguin for header (5 lines)
   small: [
-    "  ▄██▄  ",
-    " █◉◉█ ",
-    " █▽█ ",
-    "  ▀▀  ",
-    "  ██  ",
+    "  ▄▄▄  ",
+    " █ █ █ ",
+    "  ▀▀▀  ",
   ],
-
-  // Medium penguin with more detail
   medium: [
-    "   ▄████▄   ",
-    "  █ ◉  ◉ █  ",
-    "  █   ▽  █  ",
-    "   ▀████▀   ",
-    "    ████    ",
-    "    █  █    ",
+    "   ▄▄▄▄▄   ",
+    "  █  █  █  ",
+    "   ▄▄▄▄▄   ",
+    "   ▀▀▀▀▀   ",
   ],
-
-  // Kowalski with clipboard (for analysis theme)
   kowalski: [
-    "   ▄████▄  ┌──┐",
-    "  █ ◉  ◉ █ │▓▓│",
-    "  █   ▽  █ │▓▓│",
-    "   ▀████▀  └──┘",
-    "    ████       ",
-    "    █  █       ",
+    "  ▄████▄ ",
+    " █ ▄▄ █ ",
+    " █ ▀▀ █ ",
+    "  ▀▀▀▀  ",
   ],
 } as const;
 
