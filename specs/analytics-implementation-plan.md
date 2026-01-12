@@ -80,16 +80,20 @@ This document outlines the implementation plan for Kowalski Analytics, with refe
 
 ## Phase 3: Analysis Brain
 
-### 3.1 Hypothesis Engine
-- [ ] Create `hypotheses.ts` module [Spec §3.3.5, REF: AN-005]
-- [ ] Implement hypothesis generation from patterns:
-  - [ ] Correlation-based: "X may drive Y" (r > 0.5)
-  - [ ] Group difference: "Segment A differs from B" (significant t-test)
-  - [ ] Trend-based: "Metric is increasing/decreasing"
-  - [ ] Anomaly-based: "Outliers may indicate issue"
-- [ ] Add causal vs correlational interpretation
-- [ ] Identify potential confounding variables
-- [ ] Suggest follow-up analyses
+### 3.1 Hypothesis Engine ✅
+- [x] Create `hypotheses.ts` module [Spec §3.3.5, REF: AN-005]
+- [x] Implement hypothesis generation from patterns:
+  - [x] Correlation-based: "X may drive Y" (r > 0.5)
+  - [x] Group difference: "Segment A differs from B" (significant t-test)
+  - [x] Trend-based: "Metric is increasing/decreasing"
+  - [x] Anomaly-based: "Outliers may indicate issue"
+- [x] Add causal vs correlational interpretation
+- [x] Identify potential confounding variables
+- [x] Suggest follow-up analyses
+
+**Completed:** 2026-01-13
+**Tests:** 38 passing tests in `src/canvases/analytics/__tests__/hypotheses.test.ts`
+**Commit:** 2e52a5b
 
 ### 3.2 Enhanced Statistics
 - [ ] Extend `stats.ts` with additional tests [Spec §3.3.2-3.3.4]
