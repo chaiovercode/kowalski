@@ -9,30 +9,11 @@ Analyze data files using Kowalski Analytics.
 /kowalski              # Scans current directory for data files
 ```
 
-## Installation
-
-```bash
-# Install globally with bun
-bun add -g kowalski-analytics
-
-# Or with npm
-npm install -g kowalski-analytics
-
-# Or clone and link locally
-git clone https://github.com/vivek/kowalski.git
-cd kowalski && bun link
-```
-
-After installation, copy this command file to your Claude commands:
-```bash
-cp node_modules/kowalski-analytics/commands/kowalski.md ~/.claude/commands/
-# Or if installed globally:
-kowalski --setup
-```
-
 ## Instructions
 
-When this command is invoked, FIRST display the ASCII banner in Claude orange (#da7756):
+When this command is invoked with a file:
+
+### Step 1: Display ASCII Banner (Claude Orange #da7756)
 
 ```
 ██╗  ██╗ ██████╗ ██╗    ██╗ █████╗ ██╗     ███████╗██╗  ██╗██╗
@@ -50,12 +31,7 @@ When this command is invoked, FIRST display the ASCII banner in Claude orange (#
 ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝╚═╝   ╚══════╝╚═╝╚══════╝
 ```
 
-Then proceed with analysis:
-
-1. **If a file path is provided**: Load and analyze that specific CSV/JSON file
-2. **If no arguments**: Scan the current directory for `.csv`, `.json`, `.tsv` files and list them
-
-### Analysis Steps
+### Step 2: Load and Analyze Data
 
 ```typescript
 import { readFileSync } from "fs";
@@ -66,49 +42,68 @@ import {
   generateEDAReport,
   inferSchema,
   generateHypotheses,
-  generateBrowserViz,
-  openBrowserViz,
   spawnAnalytics,
-  KOWALSKI_BANNER,
-  THEME,
 } from "kowalski-analytics";
 
-// Display banner in Claude orange
-console.log("\x1b[38;2;218;119;86m" + KOWALSKI_BANNER + "\x1b[0m");
-
-// 1. Load data
+// Load data
 const content = readFileSync(filePath, "utf-8");
 const data = filePath.endsWith(".json")
   ? parseJSON(content, { name: filename })
   : parseCSV(content, { name: filename });
 
-// 2. Run analysis
+// Run analysis
 const analysis = analyzeDataSet(data);
-const schema = inferSchema(data);
-const hypotheses = generateHypotheses(data, analysis);
 const report = generateEDAReport(data, analysis);
-
-// 3. Show results and optionally spawn dashboard
 ```
+
+### Step 3: Spawn Terminal Dashboard with Braille Visualizations
+
+ALWAYS spawn the terminal dashboard on first analysis:
+
+```typescript
+// Spawn the analytics canvas in tmux (opens tmux automatically if not in tmux)
+await spawnAnalytics({
+  title: `Analysis: ${filename}`,
+  data,
+  analysis,
+  phase: "eda",  // Shows braille charts, distributions, correlations
+});
+```
+
+The dashboard will open in a tmux split pane showing:
+- Braille sparklines and distributions
+- Correlation heatmap
+- Data quality gauge
+- Key findings
 
 ### Output Format
 
-Present findings in Kowalski's voice:
+After spawning the dashboard, briefly summarize in Kowalski's voice:
 
-- Display the ASCII banner first (in Claude orange)
-- "Kowalski, analysis!" greeting
-- Dataset overview (rows, columns, types)
-- Key statistics and correlations
-- Generated hypotheses
-- Top findings from EDA report
-- Offer to: spawn terminal dashboard OR open browser visualization
+- "Kowalski, analysis!"
+- "Dashboard deployed in tmux, Skipper"
+- Quick stats: X rows, Y columns
+- Top finding from EDA report
+- "Press Q to close dashboard, ENTER for more options"
+
+### If No File Provided
+
+Scan current directory for `.csv`, `.json`, `.tsv` files and list them:
+
+```
+Available data files:
+  1. sales.csv (32 rows)
+  2. users.json (150 rows)
+
+Use: /kowalski <filename> to analyze
+```
 
 ### Kowalski Personality
 
 Use military/scientific jargon:
 - "Reconnaissance complete, Skipper"
 - "Data quality assessment: nominal"
-- "Correlation detected between variables"
-- "Hypothesis generated with 85% confidence"
+- "Dashboard deployed to tactical display"
+- "Braille visualization rendering complete"
 
 $ARGUMENTS
