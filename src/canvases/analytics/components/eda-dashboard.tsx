@@ -15,6 +15,42 @@ interface EDADashboardProps {
   width: number;
   height: number;
   scrollOffset?: number;
+  totalContentHeight?: number;
+}
+
+// Scroll bar indicator
+function ScrollBar({
+  height,
+  scrollOffset,
+  totalContent,
+  visibleHeight,
+}: {
+  height: number;
+  scrollOffset: number;
+  totalContent: number;
+  visibleHeight: number;
+}) {
+  if (totalContent <= visibleHeight) return null;
+
+  const trackHeight = Math.max(height - 2, 3);
+  const thumbSize = Math.max(2, Math.floor((visibleHeight / totalContent) * trackHeight));
+  const maxScroll = totalContent - visibleHeight;
+  const thumbPosition = Math.floor((scrollOffset / maxScroll) * (trackHeight - thumbSize));
+
+  return (
+    <Box flexDirection="column" marginLeft={1}>
+      <Text color={THEME.border}>▲</Text>
+      {Array.from({ length: trackHeight }).map((_, i) => {
+        const isThumb = i >= thumbPosition && i < thumbPosition + thumbSize;
+        return (
+          <Text key={i} color={isThumb ? THEME.primary : THEME.border}>
+            {isThumb ? "█" : "│"}
+          </Text>
+        );
+      })}
+      <Text color={THEME.border}>▼</Text>
+    </Box>
+  );
 }
 
 // Correlation heatmap
@@ -202,6 +238,7 @@ export function EDADashboard({
   width,
   height,
   scrollOffset = 0,
+  totalContentHeight = 50,
 }: EDADashboardProps) {
   const { statistics, correlations, trends } = analysis;
 
@@ -390,6 +427,14 @@ export function EDADashboard({
             />
           </Box>
         </Box>
+
+        {/* SCROLL BAR */}
+        <ScrollBar
+          height={innerHeight - 5}
+          scrollOffset={scrollOffset}
+          totalContent={totalContentHeight}
+          visibleHeight={innerHeight - 5}
+        />
       </Box>
     </Box>
   );
