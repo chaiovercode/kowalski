@@ -94,7 +94,7 @@ program
 
 program
   .command("selection <id>")
-  .description("Get the current selection from a running document canvas")
+  .description("Get the current selection from a running canvas")
   .action(async (id: string) => {
     const { getSocketPath } = await import("./ipc/types");
     const socketPath = getSocketPath(id);
@@ -154,7 +154,7 @@ program
 
 program
   .command("content <id>")
-  .description("Get the current content from a running document canvas")
+  .description("Get the current content from a running canvas")
   .action(async (id: string) => {
     const { getSocketPath } = await import("./ipc/types");
     const socketPath = getSocketPath(id);
