@@ -121,7 +121,7 @@ This document outlines the implementation plan for Kowalski Analytics, with refe
 
 ---
 
-## Phase 4: Relationship Discovery
+## Phase 4: Relationship Discovery ✅ COMPLETE
 
 ### 4.1 Multi-Dataset Support ✅
 - [x] Create `relationships.ts` module [Spec §3.2.2, REF: DU-002]
@@ -144,12 +144,16 @@ This document outlines the implementation plan for Kowalski Analytics, with refe
 **Tests:** 20 passing tests in `src/canvases/analytics/__tests__/relationships.test.ts`
 **Commit:** a54056a
 
-### 4.3 Compare Command
-- [ ] Implement `/kowalski compare <file1> <file2>` handler [Spec §5.2]
-- [ ] Load both datasets
-- [ ] Run relationship discovery
-- [ ] Present findings with Kowalski voice
-- [ ] Suggest join strategy if applicable
+### 4.3 Compare Command ✅
+- [x] Implement `/kowalski compare <file1> <file2>` handler [Spec §5.2]
+- [x] Load both datasets
+- [x] Run relationship discovery
+- [x] Present findings with Kowalski voice
+- [x] Suggest join strategy if applicable
+
+**Completed:** 2026-01-13
+**Tests:** 10 passing tests in `src/skills/kowalski/__tests__/commands.test.ts` (compare section)
+**Commit:** 293ecd6
 
 ---
 
