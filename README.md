@@ -1,59 +1,158 @@
-# Canvas Plugin
+# Kowalski
 
-Interactive terminal TUI components for Claude Code.
+> "Kowalski, analysis!" - Skipper
 
-## Overview
+A Claude Code plugin for intelligent data analysis with beautiful terminal visualizations.
 
-Canvas provides spawnable terminal displays (calendars, documents, flight booking) with real-time IPC communication. Claude can spawn these TUIs in tmux split panes and receive user selections.
+## Features
 
-## Canvas Types
+- **Intelligent EDA** - Claude-like analysis that detects synthetic data, finds patterns, and provides actionable insights
+- **Terminal Visualizations** - High-resolution charts using braille characters (2x4 pixels per character)
+- **Two-Column Dashboard** - Analysis on the left, visualizations on the right
+- **Browser Visualizations** - Interactive Plotly dashboards when you need more detail
+- **Works with Any Dataset** - Generic column detection adapts to your data
 
-| Type | Description |
-|------|-------------|
+## Quick Start
+
+```bash
+# Install dependencies
+bun install
+
+# Run analysis on a CSV file
+bun test-analytics.ts your_data.csv
+
+# Test the terminal dashboard
+bun test-eda-dashboard.tsx your_data.csv
+```
+
+## Terminal Dashboard
+
+The EDA dashboard displays:
+
+**Left Panel - Claude's Analysis:**
+- Dataset overview (rows, columns, data quality)
+- Variable summary with statistics
+- Synthetic data detection
+- Key findings with severity indicators
+- Bottom line recommendation
+
+**Right Panel - Visualizations:**
+- Quick stats with sparklines
+- Distribution histograms (braille)
+- Category breakdowns (bar charts)
+- Correlation matrix heatmap
+- Data quality gauge
+
+## Sample Output
+
+```
+◆ EDA: sales.csv                                │ QUICK STATS
+                                                │ revenue   10.1K   ⠢⡐⢄⡠⠢⠔⠤ ↑24.2%
+THE BASICS                                      │ units     202     ⠢⡐⢄⡠⠢⠔⠤ ↑24.2%
+32 rows • 6 columns                             │
+                                                │ DISTRIBUTION: REVENUE
+VARIABLES                                       │ ⣿⣿⣿⣿⣿⣿⣿⣿⣶⣶⣿⣿⣿⣿⣿⣿
+◆ region         4 unique values                │
+◆ product        2 unique values                │ BY REGION
+# revenue        10100 2206 6100→15000          │ West    │████████████ 11.2K
+# units          202 44 122→300                 │ East    │██████████ 9.8K
+                                                │
+KEY FINDINGS                                    │ CORRELATIONS
+ ✓ Strong Correlations: revenue ↔ units (1.00)  │      rev  unit cost
+ • Significant Trends: revenue ↑24.2%           │ rev  ████ ████ ████
+                                                │ unit ████ ████ ████
+╭──────────────────────────────────────────────╮│
+│ BOTTOM LINE                                  ││ DATA QUALITY
+│ Data quality looks good. Ready for analysis. ││ Complete ████████████ 100%
+╰──────────────────────────────────────────────╯│
+```
+
+## Project Structure
+
+```
+kowalski/
+├── src/
+│   ├── canvases/
+│   │   ├── analytics/
+│   │   │   ├── components/
+│   │   │   │   ├── eda-dashboard.tsx   # Main terminal dashboard
+│   │   │   │   ├── braille-charts.tsx  # High-res terminal charts
+│   │   │   │   └── ...
+│   │   │   ├── insights.ts             # Intelligent EDA engine
+│   │   │   ├── data-loader.ts          # CSV/JSON parsing
+│   │   │   ├── stats.ts                # Statistical analysis
+│   │   │   ├── browser-viz.ts          # Plotly visualizations
+│   │   │   └── theme.ts                # Cyberpunk color theme
+│   │   └── analytics.tsx               # Main canvas component
+│   ├── api/                            # Canvas spawning API
+│   ├── ipc/                            # Inter-process communication
+│   └── cli.ts                          # CLI entry point
+├── skills/                             # Claude Code skill definitions
+├── sample_data/                        # Example datasets
+└── package.json
+```
+
+## Intelligent Analysis
+
+Kowalski doesn't just show stats - it thinks like a data scientist:
+
+- **Synthetic Data Detection** - Identifies fake/generated data by checking for:
+  - Zero missing values in large datasets
+  - Near-zero correlations across all variables
+  - Suspiciously uniform distributions
+  - Identical means across groups
+  - Garbage/random text columns
+
+- **Pattern Recognition** - Finds:
+  - Strong correlations worth investigating
+  - Significant trends over time
+  - Outliers and anomalies
+  - Category imbalances
+
+- **Actionable Insights** - Provides a "Bottom Line" summary with recommendations
+
+## Usage in Claude Code
+
+```typescript
+import { parseCSV, analyzeDataSet, generateEDAReport } from "./src/canvases/analytics";
+import { spawnAnalytics } from "./src/api";
+
+// Load and analyze data
+const data = parseCSV(csvContent, { name: "sales.csv" });
+const analysis = analyzeDataSet(data);
+
+// Spawn the analytics canvas
+await spawnAnalytics({
+  title: "Sales Analysis",
+  data,
+  analysis,
+  phase: "eda",
+});
+```
+
+## Other Canvas Types
+
+Kowalski also includes additional interactive terminal canvases:
+
+| Canvas | Description |
+|--------|-------------|
+| `analytics` | Data analysis with EDA dashboard |
 | `calendar` | Display events, pick meeting times |
 | `document` | View/edit markdown documents |
 | `flight` | Compare flights and select seats |
 
-## Installation
+## Tech Stack
 
-```bash
-# Add as Claude Code plugin
-claude --plugin-dir /path/to/claude-canvas/canvas
-
-# Or via marketplace
-/plugin marketplace add djsiegel/claude-canvas
-/plugin install claude-canvas@canvas
-```
-
-## Usage
-
-```bash
-# Show calendar in current terminal
-bun run src/cli.ts show calendar
-
-# Spawn meeting picker in tmux split
-bun run src/cli.ts spawn calendar --scenario meeting-picker --config '{"calendars": [...]}'
-
-# Spawn document editor
-bun run src/cli.ts spawn document --scenario edit --config '{"content": "# Hello"}'
-```
-
-## Commands
-
-- `/canvas` - Interactive canvas spawning
-
-## Skills
-
-- `canvas` - Main skill with overview and IPC details
-- `calendar` - Calendar display and meeting picker
-- `document` - Markdown rendering and text selection
-- `flight` - Flight comparison and seatmaps
+- **Bun** - Runtime and package manager
+- **React + Ink** - Terminal UI rendering
+- **Plotly.js** - Browser visualizations
+- **TypeScript** - Type safety
 
 ## Requirements
 
-- **tmux** - Canvas spawning requires a tmux session
 - **Bun** - Runtime for CLI commands
-- **Terminal with mouse support** - For interactive scenarios
+- **tmux** - Canvas spawning (optional)
+- **Terminal with Unicode support** - For braille charts
 
 ## License
 
