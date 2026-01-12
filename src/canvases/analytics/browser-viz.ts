@@ -859,6 +859,65 @@ function generateDashboardHTML(
     renderChart3();
     renderChart4();
     renderHeatmap();
+
+    // Export functionality
+    function downloadChart(chartId, format) {
+      const gd = document.getElementById(chartId);
+      if (!gd || !gd.data) {
+        alert('Chart not found or not rendered');
+        return;
+      }
+
+      Plotly.downloadImage(gd, {
+        format: format,
+        width: 1200,
+        height: 800,
+        filename: 'kowalski-' + chartId + '-' + Date.now()
+      });
+    }
+
+    function downloadAllCharts(format) {
+      const charts = ['chart1', 'chart2', 'chart3', 'chart4', 'heatmap'];
+      charts.forEach((chartId, i) => {
+        const gd = document.getElementById(chartId);
+        if (gd && gd.data) {
+          setTimeout(() => downloadChart(chartId, format), i * 500);
+        }
+      });
+    }
+
+    // Add export buttons to header
+    const exportContainer = document.createElement('div');
+    exportContainer.style.cssText = 'display: flex; gap: 8px; margin-left: 32px;';
+    exportContainer.innerHTML = \`
+      <button onclick="downloadAllCharts('png')" style="
+        background: \${colors.primary};
+        color: \${colors.background};
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      ">📸 Export PNG</button>
+      <button onclick="downloadAllCharts('svg')" style="
+        background: transparent;
+        color: \${colors.primary};
+        border: 1px solid \${colors.primary};
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      ">📐 Export SVG</button>
+    \`;
+    document.querySelector('.header-stats').after(exportContainer);
   </script>
 </body>
 </html>`;
