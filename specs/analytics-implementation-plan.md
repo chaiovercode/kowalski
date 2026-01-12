@@ -95,13 +95,17 @@ This document outlines the implementation plan for Kowalski Analytics, with refe
 **Tests:** 38 passing tests in `src/canvases/analytics/__tests__/hypotheses.test.ts`
 **Commit:** 2e52a5b
 
-### 3.2 Enhanced Statistics
-- [ ] Extend `stats.ts` with additional tests [Spec §3.3.2-3.3.4]
-- [ ] Add Cramér's V for categorical correlation [REF: AN-002]
-- [ ] Add point-biserial for numeric-categorical [REF: AN-002]
-- [ ] Implement Z-score outlier detection [REF: AN-004]
-- [ ] Add change point detection for time series [REF: AN-003]
-- [ ] Implement seasonality detection [REF: AN-003]
+### 3.2 Enhanced Statistics ✅
+- [x] Extend `stats.ts` with additional tests [Spec §3.3.2-3.3.4]
+- [x] Add Cramér's V for categorical correlation [REF: AN-002]
+- [x] Add point-biserial for numeric-categorical [REF: AN-002]
+- [x] Implement Z-score outlier detection [REF: AN-004]
+- [x] Add change point detection for time series [REF: AN-003]
+- [x] Implement seasonality detection [REF: AN-003]
+
+**Completed:** 2026-01-13
+**Tests:** 40 passing tests in `src/canvases/analytics/__tests__/enhanced-stats.test.ts`
+**Commit:** 5622871
 
 ### 3.3 Analysis Brain Interface
 - [ ] Create `brain.ts` as central analysis orchestrator [Spec §5.3]
