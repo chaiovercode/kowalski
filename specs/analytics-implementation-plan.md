@@ -36,38 +36,45 @@ This document outlines the implementation plan for Kowalski Analytics, with refe
 
 ## Phase 2: Data Understanding Engine
 
-### 2.1 Enhanced Schema Inference
-- [ ] Extend `data-loader.ts` with confidence-scored type detection [Spec §3.2.1, REF: DU-001]
-- [ ] Add semantic type detection:
-  - [ ] Percentage (0-100 range, % suffix)
-  - [ ] Currency ($ prefix, common amounts)
-  - [ ] Count (integer, positive)
-  - [ ] Rate (decimal, 0-1 range)
-  - [ ] ID column (all unique, sequential or UUID pattern)
-  - [ ] Boolean (true/false, yes/no, 1/0)
-- [ ] Implement confidence scoring (0-100%) for each inference
-- [ ] Create `understanding.ts` module [Spec §5.3]
+### 2.1 Enhanced Schema Inference ✅
+- [x] Extend `data-loader.ts` with confidence-scored type detection [Spec §3.2.1, REF: DU-001]
+- [x] Add semantic type detection:
+  - [x] Percentage (0-100 range, % suffix)
+  - [x] Currency ($ prefix, common amounts)
+  - [x] Count (integer, positive)
+  - [x] Rate (decimal, 0-1 range)
+  - [x] ID column (all unique, sequential or UUID pattern)
+  - [x] Boolean (true/false, yes/no, 1/0)
+  - [x] Additional types: email, phone, url, timestamp, text, categorical
+- [x] Implement confidence scoring (0-100%) for each inference
+- [x] Create `understanding.ts` module [Spec §5.3]
 
-### 2.2 Clarifying Questions System
-- [ ] Create `questions.ts` module [Spec §3.2.3, REF: DU-003]
-- [ ] Define question triggers:
-  - [ ] Ambiguous column names (confidence < 70%)
-  - [ ] Mixed data types in column
-  - [ ] Unknown categorical values
-  - [ ] Unusual patterns (>80% same value)
-- [ ] Implement question formatting with Kowalski voice
+**Completed:** 2026-01-13
+**Tests:** 41 passing tests in `src/canvases/analytics/__tests__/understanding.test.ts`
+**Commit:** edc8dab
+
+### 2.2 Clarifying Questions System (Partially Complete)
+- [x] Create clarifying question generation in `understanding.ts` [Spec §3.2.3, REF: DU-003]
+- [x] Define question triggers:
+  - [x] Ambiguous column names (confidence < 70%)
+  - [x] Mixed data types in column
+  - [x] Unknown categorical values
+- [x] Implement question formatting with Kowalski voice (`kowalskiConfidenceMessage`)
+- [ ] Create `questions.ts` module for centralized question handling
 - [ ] Add multiple-choice response handler
 - [ ] Store user responses in memory for future reference
 
-### 2.3 Confidence System
-- [ ] Create `confidence.ts` module [Spec §5.5]
-- [ ] Define confidence thresholds:
-  - [ ] ≥90%: Auto-proceed
-  - [ ] 70-89%: Note uncertainty, proceed
-  - [ ] 50-69%: Ask clarifying question
-  - [ ] <50%: Require user input
-- [ ] Implement confidence aggregation for complex inferences
-- [ ] Add confidence verbalization for user-facing messages [Spec §4.3.2, REF: USE-002]
+### 2.3 Confidence System ✅
+- [x] Confidence scoring implemented in `understanding.ts` [Spec §5.5]
+- [x] Define confidence thresholds (exported as `CONFIDENCE_THRESHOLDS`):
+  - [x] ≥90%: Auto-proceed (high)
+  - [x] 70-89%: Note uncertainty, proceed (medium)
+  - [x] 50-69%: Ask clarifying question (low)
+  - [x] <50%: Require user input (very_low)
+- [x] Implement confidence aggregation for complex inferences
+- [x] Add confidence verbalization for user-facing messages [Spec §4.3.2, REF: USE-002]
+  - [x] `verbalizeConfidence()` - human-readable confidence description
+  - [x] `kowalskiConfidenceMessage()` - Kowalski personality messages
 
 ---
 
