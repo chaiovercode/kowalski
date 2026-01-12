@@ -32,7 +32,25 @@ kowalski --setup
 
 ## Instructions
 
-When this command is invoked:
+When this command is invoked, FIRST display the ASCII banner in Claude orange (#da7756):
+
+```
+██╗  ██╗ ██████╗ ██╗    ██╗ █████╗ ██╗     ███████╗██╗  ██╗██╗
+██║ ██╔╝██╔═══██╗██║    ██║██╔══██╗██║     ██╔════╝██║ ██╔╝██║
+█████╔╝ ██║   ██║██║ █╗ ██║███████║██║     ███████╗█████╔╝ ██║
+██╔═██╗ ██║   ██║██║███╗██║██╔══██║██║     ╚════██║██╔═██╗ ██║
+██║  ██╗╚██████╔╝╚███╔███╔╝██║  ██║███████╗███████║██║  ██╗██║
+╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝ ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝
+
+ █████╗ ███╗   ██╗ █████╗ ██╗  ██╗   ██╗███████╗██╗███████╗
+██╔══██╗████╗  ██║██╔══██╗██║  ╚██╗ ██╔╝██╔════╝██║██╔════╝
+███████║██╔██╗ ██║███████║██║   ╚████╔╝ ███████╗██║███████╗
+██╔══██║██║╚██╗██║██╔══██║██║    ╚██╔╝  ╚════██║██║╚════██║
+██║  ██║██║ ╚████║██║  ██║███████╗██║   ███████║██║███████║
+╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝╚═╝   ╚══════╝╚═╝╚══════╝
+```
+
+Then proceed with analysis:
 
 1. **If a file path is provided**: Load and analyze that specific CSV/JSON file
 2. **If no arguments**: Scan the current directory for `.csv`, `.json`, `.tsv` files and list them
@@ -51,7 +69,12 @@ import {
   generateBrowserViz,
   openBrowserViz,
   spawnAnalytics,
+  KOWALSKI_BANNER,
+  THEME,
 } from "kowalski-analytics";
+
+// Display banner in Claude orange
+console.log("\x1b[38;2;218;119;86m" + KOWALSKI_BANNER + "\x1b[0m");
 
 // 1. Load data
 const content = readFileSync(filePath, "utf-8");
@@ -72,6 +95,7 @@ const report = generateEDAReport(data, analysis);
 
 Present findings in Kowalski's voice:
 
+- Display the ASCII banner first (in Claude orange)
 - "Kowalski, analysis!" greeting
 - Dataset overview (rows, columns, types)
 - Key statistics and correlations

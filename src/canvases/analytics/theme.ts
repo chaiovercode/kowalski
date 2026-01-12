@@ -6,6 +6,7 @@ export const THEME = {
   primary: "#3b82f6",      // Blue (main accent)
   secondary: "#64748b",    // Slate gray (section headers)
   tertiary: "#8b5cf6",     // Purple (highlights)
+  claude: "#da7756",       // Claude orange
 
   // Semantic colors
   positive: "#22c55e",     // Green (success, increases)
@@ -126,6 +127,33 @@ export const PENGUIN = {
     "  ▀▀▀▀  ",
   ],
 } as const;
+
+// KOWALSKI ANALYSIS ASCII Banner
+export const KOWALSKI_BANNER = `
+██╗  ██╗ ██████╗ ██╗    ██╗ █████╗ ██╗     ███████╗██╗  ██╗██╗
+██║ ██╔╝██╔═══██╗██║    ██║██╔══██╗██║     ██╔════╝██║ ██╔╝██║
+█████╔╝ ██║   ██║██║ █╗ ██║███████║██║     ███████╗█████╔╝ ██║
+██╔═██╗ ██║   ██║██║███╗██║██╔══██║██║     ╚════██║██╔═██╗ ██║
+██║  ██╗╚██████╔╝╚███╔███╔╝██║  ██║███████╗███████║██║  ██╗██║
+╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝ ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝
+
+ █████╗ ███╗   ██╗ █████╗ ██╗  ██╗   ██╗███████╗██╗███████╗
+██╔══██╗████╗  ██║██╔══██╗██║  ╚██╗ ██╔╝██╔════╝██║██╔════╝
+███████║██╔██╗ ██║███████║██║   ╚████╔╝ ███████╗██║███████╗
+██╔══██║██║╚██╗██║██╔══██║██║    ╚██╔╝  ╚════██║██║╚════██║
+██║  ██║██║ ╚████║██║  ██║███████╗██║   ███████║██║███████║
+╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝╚═╝   ╚══════╝╚═╝╚══════╝
+`;
+
+// Compact banner for smaller terminals
+export const KOWALSKI_BANNER_COMPACT = `
+╔═╗╔═╗╦ ╦╔═╗╦  ╔═╗╦╔═╦  ╔═╗╔╗╔╔═╗╦  ╦ ╦╔═╗╦╔═╗
+╠╩╗║ ║║║║╠═╣║  ╚═╗╠╩╗║  ╠═╣║║║╠═╣║  ╚╦╝╚═╗║╚═╗
+╩ ╩╚═╝╚╩╝╩ ╩╩═╝╚═╝╩ ╩╩  ╩ ╩╝╚╝╩ ╩╩═╝ ╩ ╚═╝╩╚═╝
+`;
+
+// Sleek one-liner
+export const KOWALSKI_TITLE = "◆ KOWALSKI ANALYSIS ◆";
 
 // Format helpers
 export function formatNumber(n: number, decimals = 1): string {

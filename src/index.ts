@@ -95,3 +95,11 @@ export {
   type CanvasSession,
   type SpawnOptions,
 } from "./api/canvas-api";
+
+// Theme and branding
+export {
+  THEME,
+  KOWALSKI_BANNER,
+  KOWALSKI_BANNER_COMPACT,
+  KOWALSKI_TITLE,
+} from "./canvases/analytics/theme";
