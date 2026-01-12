@@ -75,6 +75,23 @@ export interface Correlation {
   column2: string;
   value: number;
   strength: "strong" | "moderate" | "weak" | "none";
+  type?: "pearson" | "cramers_v" | "point_biserial";
+}
+
+export interface ChangePoint {
+  index: number;
+  beforeMean: number;
+  afterMean: number;
+  significance: number;
+  direction: "increase" | "decrease";
+}
+
+export interface SeasonalityResult {
+  detected: boolean;
+  period?: number;
+  strength?: number;
+  peaks?: number[];
+  description?: string;
 }
 
 export interface Trend {

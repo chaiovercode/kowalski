@@ -13,7 +13,7 @@ import type {
   KPI,
   Outlier,
 } from "./types";
-import { getNumericColumnValues, getColumnValues } from "./data-loader";
+import { getNumericColumnValues, getColumnValues, cacheColumnData } from "./data-loader";
 import { getCorrelationStrength } from "./types";
 
 /**
@@ -125,6 +125,189 @@ export function calculateCorrelation(x: number[], y: number[]): number {
 }
 
 /**
+ * Calculate Cramér's V for categorical-categorical correlation
+ * Measures association between two categorical variables
+ * Returns value between 0 (no association) and 1 (perfect association)
+ */
+export function calculateCramersV(
+  x: (string | number | null)[],
+  y: (string | number | null)[]
+): number {
+  if (x.length !== y.length || x.length < 2) return 0;
+
+  // Build contingency table
+  const contingencyTable = new Map<string, Map<string, number>>();
+  const xValues = new Set<string>();
+  const yValues = new Set<string>();
+  let n = 0;
+
+  for (let i = 0; i < x.length; i++) {
+    if (x[i] === null || y[i] === null) continue;
+
+    const xVal = String(x[i]);
+    const yVal = String(y[i]);
+
+    xValues.add(xVal);
+    yValues.add(yVal);
+
+    if (!contingencyTable.has(xVal)) {
+      contingencyTable.set(xVal, new Map());
+    }
+    const row = contingencyTable.get(xVal)!;
+    row.set(yVal, (row.get(yVal) || 0) + 1);
+    n++;
+  }
+
+  if (n === 0) return 0;
+
+  const numRows = xValues.size;
+  const numCols = yValues.size;
+
+  if (numRows < 2 || numCols < 2) return 0;
+
+  // Calculate row and column totals
+  const rowTotals = new Map<string, number>();
+  const colTotals = new Map<string, number>();
+
+  for (const xVal of xValues) {
+    let rowTotal = 0;
+    const row = contingencyTable.get(xVal);
+    if (row) {
+      for (const yVal of yValues) {
+        const count = row.get(yVal) || 0;
+        rowTotal += count;
+        colTotals.set(yVal, (colTotals.get(yVal) || 0) + count);
+      }
+    }
+    rowTotals.set(xVal, rowTotal);
+  }
+
+  // Calculate chi-squared statistic
+  let chiSquared = 0;
+  for (const xVal of xValues) {
+    const row = contingencyTable.get(xVal);
+    const rowTotal = rowTotals.get(xVal) || 0;
+
+    for (const yVal of yValues) {
+      const observed = row?.get(yVal) || 0;
+      const colTotal = colTotals.get(yVal) || 0;
+      const expected = (rowTotal * colTotal) / n;
+
+      if (expected > 0) {
+        chiSquared += Math.pow(observed - expected, 2) / expected;
+      }
+    }
+  }
+
+  // Calculate Cramér's V
+  const minDim = Math.min(numRows - 1, numCols - 1);
+  if (minDim === 0) return 0;
+
+  const v = Math.sqrt(chiSquared / (n * minDim));
+  return Math.min(v, 1); // Clamp to [0, 1]
+}
+
+/**
+ * Calculate point-biserial correlation for numeric-categorical pairs
+ * Measures correlation between a continuous variable and a binary variable
+ * For multi-category variables, calculates against the most common category
+ */
+export function calculatePointBiserial(
+  numeric: number[],
+  categorical: (string | number | null)[]
+): number {
+  if (numeric.length !== categorical.length || numeric.length < 2) return 0;
+
+  // Find the most common category (or use binary if only 2)
+  const counts = new Map<string, number>();
+  for (const cat of categorical) {
+    if (cat !== null) {
+      const key = String(cat);
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
+  }
+
+  const categories = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+  if (categories.length < 2) return 0;
+
+  // Use the most common category as group 1, rest as group 0
+  const targetCategory = categories[0][0];
+
+  // Split numeric values by group
+  const group1: number[] = [];
+  const group0: number[] = [];
+
+  for (let i = 0; i < numeric.length; i++) {
+    if (categorical[i] === null || isNaN(numeric[i])) continue;
+
+    if (String(categorical[i]) === targetCategory) {
+      group1.push(numeric[i]);
+    } else {
+      group0.push(numeric[i]);
+    }
+  }
+
+  if (group0.length === 0 || group1.length === 0) return 0;
+
+  const n = group0.length + group1.length;
+  const n0 = group0.length;
+  const n1 = group1.length;
+
+  // Calculate means
+  const mean0 = group0.reduce((a, b) => a + b, 0) / n0;
+  const mean1 = group1.reduce((a, b) => a + b, 0) / n1;
+
+  // Calculate pooled standard deviation
+  const allValues = [...group0, ...group1];
+  const totalMean = allValues.reduce((a, b) => a + b, 0) / n;
+  const variance = allValues.reduce((acc, v) => acc + Math.pow(v - totalMean, 2), 0) / n;
+  const std = Math.sqrt(variance);
+
+  if (std === 0) return 0;
+
+  // Point-biserial correlation formula
+  const rpb = ((mean1 - mean0) / std) * Math.sqrt((n0 * n1) / (n * n));
+  return Math.max(-1, Math.min(1, rpb)); // Clamp to [-1, 1]
+}
+
+/**
+ * Calculate Z-score for a value given mean and standard deviation
+ */
+export function calculateZScore(value: number, mean: number, std: number): number {
+  if (std === 0) return 0;
+  return (value - mean) / std;
+}
+
+/**
+ * Detect outliers using Z-score method
+ * Default threshold is 3 standard deviations from the mean
+ */
+export function detectOutliersZScore(
+  values: number[],
+  threshold: number = 3
+): { indices: number[]; zscores: number[] } {
+  if (values.length < 3) return { indices: [], zscores: [] };
+
+  const stats = calculateStats(values);
+  const { mean, std } = stats;
+
+  if (std === 0) return { indices: [], zscores: [] };
+
+  const indices: number[] = [];
+  const zscores: number[] = [];
+
+  for (let i = 0; i < values.length; i++) {
+    const zscore = calculateZScore(values[i], mean, std);
+    if (Math.abs(zscore) > threshold) {
+      indices.push(i);
+      zscores.push(zscore);
+    }
+  }
+
+  return { indices, zscores };
+}
+
+/**
  * Detect trend in time series data
  */
 export function detectTrend(values: number[]): {
@@ -185,10 +368,190 @@ export function detectTrend(values: number[]): {
   return { direction, changePercent, slope };
 }
 
+import type { ChangePoint, SeasonalityResult } from "./types";
+
+/**
+ * Detect change points in time series data using CUSUM-like approach
+ * Returns points where the mean level significantly shifts
+ */
+export function detectChangePoints(
+  values: number[],
+  minSegmentSize: number = 5,
+  threshold: number = 2.0
+): ChangePoint[] {
+  if (values.length < minSegmentSize * 2) return [];
+
+  const changePoints: ChangePoint[] = [];
+  const n = values.length;
+
+  // Calculate overall statistics
+  const overallMean = values.reduce((a, b) => a + b, 0) / n;
+  const overallVariance = values.reduce((acc, v) => acc + Math.pow(v - overallMean, 2), 0) / n;
+  const overallStd = Math.sqrt(overallVariance);
+
+  if (overallStd === 0) return [];
+
+  // Test each potential change point
+  for (let i = minSegmentSize; i < n - minSegmentSize; i++) {
+    const before = values.slice(0, i);
+    const after = values.slice(i);
+
+    const beforeMean = before.reduce((a, b) => a + b, 0) / before.length;
+    const afterMean = after.reduce((a, b) => a + b, 0) / after.length;
+
+    // Calculate significance using pooled variance estimate
+    const beforeVar = before.reduce((acc, v) => acc + Math.pow(v - beforeMean, 2), 0) / before.length;
+    const afterVar = after.reduce((acc, v) => acc + Math.pow(v - afterMean, 2), 0) / after.length;
+
+    const pooledStd = Math.sqrt(
+      ((before.length - 1) * beforeVar + (after.length - 1) * afterVar) /
+      (before.length + after.length - 2)
+    );
+
+    if (pooledStd === 0) continue;
+
+    // Calculate t-statistic-like significance measure
+    const standardError = pooledStd * Math.sqrt(1 / before.length + 1 / after.length);
+    const significance = Math.abs(afterMean - beforeMean) / standardError;
+
+    if (significance > threshold) {
+      changePoints.push({
+        index: i,
+        beforeMean,
+        afterMean,
+        significance,
+        direction: afterMean > beforeMean ? "increase" : "decrease",
+      });
+    }
+  }
+
+  // Filter to keep only the most significant change points (avoid duplicates near each other)
+  const filtered: ChangePoint[] = [];
+  changePoints.sort((a, b) => b.significance - a.significance);
+
+  for (const cp of changePoints) {
+    const tooClose = filtered.some(
+      (existing) => Math.abs(existing.index - cp.index) < minSegmentSize
+    );
+    if (!tooClose) {
+      filtered.push(cp);
+    }
+  }
+
+  return filtered.sort((a, b) => a.index - b.index);
+}
+
+/**
+ * Detect seasonality in time series data using autocorrelation
+ * Looks for repeating patterns at regular intervals
+ */
+export function detectSeasonality(
+  values: number[],
+  maxPeriod?: number
+): SeasonalityResult {
+  const n = values.length;
+
+  if (n < 8) {
+    return { detected: false, description: "Insufficient data for seasonality analysis" };
+  }
+
+  // Default max period to half the data length (need at least 2 cycles)
+  const effectiveMaxPeriod = maxPeriod || Math.floor(n / 2);
+  const minPeriod = 2;
+
+  // Calculate mean and variance
+  const mean = values.reduce((a, b) => a + b, 0) / n;
+  const variance = values.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / n;
+
+  if (variance === 0) {
+    return { detected: false, description: "No variance in data" };
+  }
+
+  // Calculate autocorrelation for different lags
+  const autocorrelations: { lag: number; acf: number }[] = [];
+
+  for (let lag = minPeriod; lag <= effectiveMaxPeriod; lag++) {
+    let sum = 0;
+    let count = 0;
+
+    for (let i = 0; i < n - lag; i++) {
+      sum += (values[i] - mean) * (values[i + lag] - mean);
+      count++;
+    }
+
+    if (count > 0) {
+      const acf = sum / (count * variance);
+      autocorrelations.push({ lag, acf });
+    }
+  }
+
+  if (autocorrelations.length === 0) {
+    return { detected: false, description: "Could not compute autocorrelation" };
+  }
+
+  // Find peaks in autocorrelation (potential seasonal periods)
+  const peaks: { lag: number; acf: number }[] = [];
+
+  for (let i = 1; i < autocorrelations.length - 1; i++) {
+    const prev = autocorrelations[i - 1].acf;
+    const curr = autocorrelations[i].acf;
+    const next = autocorrelations[i + 1].acf;
+
+    // Peak detection with significance threshold
+    if (curr > prev && curr > next && curr > 0.3) {
+      peaks.push(autocorrelations[i]);
+    }
+  }
+
+  if (peaks.length === 0) {
+    return { detected: false, description: "No significant seasonal pattern detected" };
+  }
+
+  // Sort peaks by autocorrelation strength
+  peaks.sort((a, b) => b.acf - a.acf);
+  const bestPeak = peaks[0];
+
+  // Verify the period by checking for harmonics
+  const period = bestPeak.lag;
+  let harmonicScore = 0;
+
+  // Check if autocorrelation at 2x period is also high (confirms pattern)
+  const doublePeroidAcf = autocorrelations.find((a) => a.lag === period * 2);
+  if (doublePeroidAcf && doublePeroidAcf.acf > 0.2) {
+    harmonicScore += 1;
+  }
+
+  // Find peak indices in the original data
+  const peakIndices: number[] = [];
+  for (let i = 1; i < n - 1; i++) {
+    if (values[i] > values[i - 1] && values[i] > values[i + 1]) {
+      peakIndices.push(i);
+    }
+  }
+
+  // Generate description
+  let description = `Seasonal pattern detected with period ${period}`;
+  if (period === 7) description += " (weekly)";
+  else if (period === 12) description += " (monthly for yearly data)";
+  else if (period === 4) description += " (quarterly)";
+  else if (period === 24) description += " (hourly for daily data)";
+
+  return {
+    detected: true,
+    period,
+    strength: bestPeak.acf,
+    peaks: peakIndices.slice(0, 10), // Return first 10 peaks
+    description,
+  };
+}
+
 /**
  * Full analysis of a dataset
  */
 export function analyzeDataSet(data: DataSet): AnalysisResult {
+  // Pre-cache all column data for performance
+  cacheColumnData(data);
+
   const { columns, rows, types } = data;
 
   // Count column types
@@ -263,46 +626,75 @@ export function analyzeDataSet(data: DataSet): AnalysisResult {
   summary.categoricalColumns = categoricalColumns;
   summary.missingPercent = totalCells > 0 ? totalNulls / totalCells : 0;
 
-  // Count duplicate rows
-  const rowStrings = rows.map(row => JSON.stringify(row));
-  const uniqueRows = new Set(rowStrings);
-  summary.duplicateRows = rows.length - uniqueRows.size;
+  // Count duplicate rows efficiently (avoid JSON.stringify)
+  const rowHashes = new Set<string>();
+  let duplicateCount = 0;
+  for (const row of rows) {
+    // Create a simple hash string instead of JSON.stringify
+    const hash = row.map(v => v === null ? '∅' : String(v)).join('|');
+    if (rowHashes.has(hash)) {
+      duplicateCount++;
+    } else {
+      rowHashes.add(hash);
+    }
+  }
+  summary.duplicateRows = duplicateCount;
 
-  // Correlations (numeric columns only)
+  // Correlations (optimized single-pass calculation)
   const numericCols = columns.filter((_, i) => types?.[i] === "number");
   const correlations: Correlation[] = [];
 
-  for (let i = 0; i < numericCols.length; i++) {
-    for (let j = i + 1; j < numericCols.length; j++) {
-      const col1 = numericCols[i];
-      const col2 = numericCols[j];
-      const idx1 = columns.indexOf(col1);
-      const idx2 = columns.indexOf(col2);
+  if (numericCols.length >= 2) {
+    // Pre-fetch all numeric column data
+    const numericData: number[][] = numericCols.map(col => {
+      const idx = columns.indexOf(col);
+      return getNumericColumnValues(data, idx);
+    });
 
-      const vals1 = getNumericColumnValues(data, idx1);
-      const vals2 = getNumericColumnValues(data, idx2);
+    // Pre-compute sums for each column
+    const sums = numericData.map(arr => arr.reduce((a, b) => a + b, 0));
+    const sumsSq = numericData.map(arr => arr.reduce((a, b) => a + b * b, 0));
+    const counts = numericData.map(arr => arr.length);
 
-      // Align arrays (only use rows where both have values)
-      const aligned1: number[] = [];
-      const aligned2: number[] = [];
+    for (let i = 0; i < numericCols.length; i++) {
+      for (let j = i + 1; j < numericCols.length; j++) {
+        // Align arrays - only use rows where both have values
+        const vals1: number[] = [];
+        const vals2: number[] = [];
 
-      for (let k = 0; k < rows.length; k++) {
-        const v1 = rows[k][idx1];
-        const v2 = rows[k][idx2];
-        if (typeof v1 === "number" && typeof v2 === "number") {
-          aligned1.push(v1);
-          aligned2.push(v2);
+        for (let k = 0; k < rows.length; k++) {
+          const v1 = rows[k][columns.indexOf(numericCols[i])];
+          const v2 = rows[k][columns.indexOf(numericCols[j])];
+          if (typeof v1 === "number" && typeof v2 === "number") {
+            vals1.push(v1);
+            vals2.push(v2);
+          }
         }
-      }
 
-      if (aligned1.length >= 3) {
-        const value = calculateCorrelation(aligned1, aligned2);
-        correlations.push({
-          column1: col1,
-          column2: col2,
-          value,
-          strength: getCorrelationStrength(value),
-        });
+        if (vals1.length >= 3) {
+          // Use the aligned arrays for correlation
+          const n = vals1.length;
+          const sumX = vals1.reduce((a, b) => a + b, 0);
+          const sumY = vals2.reduce((a, b) => a + b, 0);
+          const sumXY = vals1.reduce((acc, xi, idx) => acc + xi * vals2[idx], 0);
+          const sumX2 = vals1.reduce((acc, xi) => acc + xi * xi, 0);
+          const sumY2 = vals2.reduce((acc, yi) => acc + yi * yi, 0);
+
+          const numerator = n * sumXY - sumX * sumY;
+          const denominator = Math.sqrt(
+            (n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY)
+          );
+
+          if (denominator !== 0) {
+            const value = numerator / denominator;
+            correlations.push({
+              column1: numericCols[i],
+              column2: numericCols[j],
+              value,
+              strength: getCorrelationStrength(value),
+            });
+          }
+        }
       }
     }
   }
