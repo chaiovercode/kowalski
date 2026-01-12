@@ -5,12 +5,6 @@ import { createIPCServer, type IPCServer } from "../ipc/server";
 import { getSocketPath, type ViewState, type HighlightTarget } from "../ipc/types";
 import { spawnCanvas } from "../terminal";
 import type { CanvasMessage } from "../ipc/types";
-import type {
-  MeetingPickerConfig,
-  MeetingPickerResult,
-  DocumentConfig,
-  DocumentSelection,
-} from "../scenarios/types";
 
 export interface CanvasResult<T = unknown> {
   success: boolean;
@@ -374,75 +368,6 @@ export async function createCanvasSession<TConfig>(
   });
 }
 
-/**
- * Spawn a meeting picker canvas
- * Convenience wrapper for the meeting-picker scenario
- */
-export async function pickMeetingTime(
-  config: MeetingPickerConfig,
-  options?: SpawnOptions
-): Promise<CanvasResult<MeetingPickerResult>> {
-  return spawnCanvasWithIPC<MeetingPickerConfig, MeetingPickerResult>(
-    "calendar",
-    "meeting-picker",
-    config,
-    options
-  );
-}
-
-/**
- * Display a calendar (non-interactive)
- * Convenience wrapper for the display scenario
- */
-export async function displayCalendar(
-  config: {
-    title?: string;
-    events?: Array<{
-      id: string;
-      title: string;
-      startTime: string;
-      endTime: string;
-      color?: string;
-      allDay?: boolean;
-    }>;
-  },
-  options?: SpawnOptions
-): Promise<CanvasResult<void>> {
-  return spawnCanvasWithIPC("calendar", "display", config, options);
-}
-
-// ============================================
-// Document Canvas API
-// ============================================
-
-/**
- * Display a document (read-only view)
- * Shows markdown-rendered content with optional diff highlighting
- */
-export async function displayDocument(
-  config: DocumentConfig,
-  options?: SpawnOptions
-): Promise<CanvasResult<void>> {
-  return spawnCanvasWithIPC("document", "display", config, options);
-}
-
-/**
- * Open a document for editing/selection
- * Returns the selected text when user makes a selection via click-and-drag
- * Selection is sent automatically as the user selects text
- */
-export async function editDocument(
-  config: DocumentConfig,
-  options?: SpawnOptions
-): Promise<CanvasResult<DocumentSelection>> {
-  return spawnCanvasWithIPC<DocumentConfig, DocumentSelection>(
-    "document",
-    "edit",
-    config,
-    options
-  );
-}
-
 // ============================================
 // Kowalski Analytics Canvas API
 // ============================================
@@ -552,4 +477,3 @@ export async function createAnalyticsSession(
     options
   );
 }
-
