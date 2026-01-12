@@ -157,32 +157,36 @@ This document outlines the implementation plan for Kowalski Analytics, with refe
 
 ---
 
-## Phase 5: Memory System
+## Phase 5: Memory System ✅ COMPLETE
 
-### 5.1 Memory Manager
-- [ ] Create `memory.ts` module [Spec §3.4, §5.4]
-- [ ] Define memory structure for CLAUDE.md [Spec §3.4.1, REF: MEM-001]
-- [ ] Implement `save()` - serialize to markdown format
-- [ ] Implement `load()` - parse from CLAUDE.md
-- [ ] Handle missing/malformed memory gracefully
+### 5.1 Memory Manager ✅
+- [x] Create `memory.ts` module [Spec §3.4, §5.4]
+- [x] Define memory structure for CLAUDE.md [Spec §3.4.1, REF: MEM-001]
+- [x] Implement `save()` - serialize to markdown format
+- [x] Implement `load()` - parse from CLAUDE.md
+- [x] Handle missing/malformed memory gracefully
 
-### 5.2 Dataset Memory
-- [ ] Store dataset fingerprint (name, columns, row count hash)
-- [ ] Remember column semantics discovered
-- [ ] Store relationship mappings
-- [ ] Track analysis history per dataset
+### 5.2 Dataset Memory ✅
+- [x] Store dataset fingerprint (name, columns, row count hash)
+- [x] Remember column semantics discovered
+- [x] Store relationship mappings
+- [x] Track analysis history per dataset (analysisCount)
 
-### 5.3 User Preferences
-- [ ] Store preferred chart types
-- [ ] Remember export format preferences
-- [ ] Track column interpretations user provided
-- [ ] Store custom thresholds/settings
+### 5.3 User Preferences ✅
+- [x] Store preferred chart types
+- [x] Remember export format preferences
+- [x] Track column interpretations user provided
+- [x] Store custom thresholds/settings (verbosityLevel, autoSpawnDashboard)
 
-### 5.4 Memory Retrieval
-- [ ] Match loaded dataset to stored memory [Spec §3.4.2, REF: MEM-002]
-- [ ] Surface relevant past findings
-- [ ] Pre-populate known column semantics
-- [ ] Show "I recognize this dataset" message when matched
+### 5.4 Memory Retrieval ✅
+- [x] Match loaded dataset to stored memory [Spec §3.4.2, REF: MEM-002]
+- [x] Surface relevant past findings (recallFindings)
+- [x] Pre-populate known column semantics (recallColumnMeaning)
+- [x] Show "I recognize this dataset" message when matched (getRecognitionMessage)
+
+**Completed:** 2026-01-13
+**Tests:** 27 passing tests in `src/canvases/analytics/__tests__/memory.test.ts`
+**Commit:** (pending)
 
 ---
 
