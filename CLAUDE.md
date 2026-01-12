@@ -1,44 +1,60 @@
-# Canvas Plugin Development
+# Kowalski Analytics
+
+> "Kowalski, analysis!" - Skipper
+
+When users ask to analyze data, load CSV/JSON files, or create visualizations:
+
+1. Use the analytics canvas to display results
+2. Parse data with `parseCSV()` or `parseJSON()` from `src/canvases/analytics/data-loader.ts`
+3. Run statistical analysis with functions from `src/canvases/analytics/stats.ts`
+4. Generate intelligent EDA with `generateEDAReport()` from `src/canvases/analytics/insights.ts`
+
+## Quick Start
+
+```typescript
+import { parseCSV, analyzeDataSet, generateEDAReport } from "./src/canvases/analytics";
+
+// Load and analyze data
+const data = parseCSV(fileContent, { name: "sales.csv" });
+const analysis = analyzeDataSet(data);
+const report = generateEDAReport(data, analysis);
+
+// report contains:
+// - overview: rows, columns, data quality
+// - variables: column summaries
+// - findings: key insights with severity
+// - isSynthetic: whether data appears fake
+// - bottomLine: actionable summary
+```
+
+## Test Commands
+
+```bash
+# Run EDA on a CSV file
+bun test-analytics.ts <filename>.csv
+
+# Test the terminal dashboard
+bun test-eda-dashboard.tsx <filename>.csv
+```
+
+## Sample Data
+
+- `sample_data/ai_adoption_dataset.csv` - Large synthetic dataset (145k rows)
+- `sample_data/sales.csv` - Small real-looking dataset (32 rows)
+
+## Key Files
+
+- `src/canvases/analytics/insights.ts` - Intelligent EDA with synthetic detection
+- `src/canvases/analytics/components/eda-dashboard.tsx` - Terminal dashboard
+- `src/canvases/analytics/browser-viz.ts` - Plotly browser visualizations
+- `src/canvases/analytics/stats.ts` - Statistical calculations
+
+## Development
 
 Use Bun for all development:
 
-- `bun run src/cli.ts` - Run CLI
-- `bun test` - Run tests
-- `bun install` - Install dependencies
-
-## Structure
-
-```
-canvas/
-├── src/           # TypeScript source code
-│   ├── cli.ts     # CLI entry point
-│   ├── canvases/  # Canvas components (React/Ink)
-│   ├── scenarios/ # Scenario definitions
-│   ├── ipc/       # IPC server/client
-│   └── api/       # High-level API
-├── skills/        # Skill documentation
-├── commands/      # User commands
-└── package.json   # Plugin dependencies
-```
-
-## Adding a New Canvas Type
-
-1. Create component in `src/canvases/`
-2. Register scenarios in `src/scenarios/`
-3. Add skill in `skills/[name]/SKILL.md`
-4. Update main canvas skill
-
-## IPC Protocol
-
-Canvases communicate via Unix domain sockets:
-
-```typescript
-// Canvas → Controller
-{ type: "ready", scenario }
-{ type: "selected", data }
-{ type: "cancelled" }
-
-// Controller → Canvas
-{ type: "update", config }
-{ type: "close" }
+```bash
+bun install          # Install dependencies
+bun test            # Run tests
+bun run src/cli.ts  # Run CLI
 ```

@@ -1,0 +1,19 @@
+{
+  "name": "kowalski",
+  "owner": {
+    "name": "Vivek",
+    "email": "vivek@example.com"
+  },
+  "metadata": {
+    "description": "Kowalski Analysis - Data analysis and visualization plugin for Claude Code. \"Kowalski, analysis!\""
+  },
+  "plugins": [
+    {
+      "name": "kowalski",
+      "source": ".",
+      "description": "Intelligent data analysis with terminal visualizations. \"Kowalski, analysis!\"",
+      "version": "0.1.0",
+      "strict": false
+    }
+  ]
+}
