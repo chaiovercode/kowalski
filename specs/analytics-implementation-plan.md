@@ -123,22 +123,26 @@ This document outlines the implementation plan for Kowalski Analytics, with refe
 
 ## Phase 4: Relationship Discovery
 
-### 4.1 Multi-Dataset Support
-- [ ] Create `relationships.ts` module [Spec §3.2.2, REF: DU-002]
-- [ ] Implement foreign key detection:
-  - [ ] Exact column name match (e.g., `customer_id`)
-  - [ ] Fuzzy name match (e.g., `cust_id` ↔ `customer_id`)
-  - [ ] Value overlap analysis
-- [ ] Calculate relationship confidence
+### 4.1 Multi-Dataset Support ✅
+- [x] Create `relationships.ts` module [Spec §3.2.2, REF: DU-002]
+- [x] Implement foreign key detection:
+  - [x] Exact column name match (e.g., `customer_id`)
+  - [x] Fuzzy name match (e.g., `cust_id` ↔ `customer_id`)
+  - [x] Value overlap analysis
+- [x] Calculate relationship confidence
 
-### 4.2 Relationship Mapping
-- [ ] Detect relationship types:
-  - [ ] One-to-one (unique both sides)
-  - [ ] One-to-many (unique one side)
-  - [ ] Many-to-many (unique neither)
-- [ ] Identify orphan records (unmatched foreign keys)
-- [ ] Calculate match percentage
-- [ ] Generate relationship diagram (ASCII art)
+### 4.2 Relationship Mapping ✅
+- [x] Detect relationship types:
+  - [x] One-to-one (unique both sides)
+  - [x] One-to-many (unique one side)
+  - [x] Many-to-many (unique neither)
+- [x] Identify orphan records (unmatched foreign keys)
+- [x] Calculate match percentage
+- [x] Generate relationship diagram (ASCII art)
+
+**Completed:** 2026-01-13
+**Tests:** 20 passing tests in `src/canvases/analytics/__tests__/relationships.test.ts`
+**Commit:** a54056a
 
 ### 4.3 Compare Command
 - [ ] Implement `/kowalski compare <file1> <file2>` handler [Spec §5.2]
