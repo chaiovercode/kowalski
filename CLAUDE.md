@@ -2,59 +2,78 @@
 
 > "Kowalski, analysis!" - Skipper
 
-When users ask to analyze data, load CSV/JSON files, or create visualizations:
+When users ask to analyze data, load CSV/JSON files, or create visualizations, spawn the analytics canvas in a tmux split pane.
 
-1. Use the analytics canvas to display results
-2. Parse data with `parseCSV()` or `parseJSON()` from `src/canvases/analytics/data-loader.ts`
-3. Run statistical analysis with functions from `src/canvases/analytics/stats.ts`
-4. Generate intelligent EDA with `generateEDAReport()` from `src/canvases/analytics/insights.ts`
+## Spawning the Canvas (REQUIRED)
 
-## Quick Start
+**You MUST be in a tmux session for the canvas to work.**
 
 ```typescript
-import { parseCSV, analyzeDataSet, generateEDAReport } from "./src/canvases/analytics";
+import { readFileSync } from "fs";
+import { parseCSV, analyzeDataSet } from "${PLUGIN_DIR}/src/canvases/analytics";
+import { spawnAnalytics } from "${PLUGIN_DIR}/src/api";
 
 // Load and analyze data
-const data = parseCSV(fileContent, { name: "sales.csv" });
+const csvContent = readFileSync("path/to/file.csv", "utf-8");
+const data = parseCSV(csvContent, { name: "file.csv" });
 const analysis = analyzeDataSet(data);
-const report = generateEDAReport(data, analysis);
 
-// report contains:
-// - overview: rows, columns, data quality
-// - variables: column summaries
-// - findings: key insights with severity
-// - isSynthetic: whether data appears fake
-// - bottomLine: actionable summary
+// Spawn canvas in tmux split pane (2/3 width on the right)
+const result = await spawnAnalytics({
+  title: "My Analysis",
+  data,
+  analysis,
+  phase: "eda",  // Start with EDA dashboard
+});
+
+// Handle result
+if (result.cancelled) {
+  console.log("User closed the canvas");
+} else if (result.data) {
+  console.log("User selected:", result.data);
+}
 ```
 
-## Test Commands
+## CLI Commands
 
 ```bash
-# Run EDA on a CSV file
-bun test-analytics.ts <filename>.csv
+# Spawn canvas in tmux split (recommended)
+bun run src/cli.ts spawn analytics --config '{"title":"Test"}'
 
-# Test the terminal dashboard
-bun test-eda-dashboard.tsx <filename>.csv
+# Show canvas in current terminal (for testing)
+bun run src/cli.ts show analytics --scenario dashboard
+```
+
+## Test Scripts
+
+```bash
+# Test canvas spawning in tmux
+bun test-canvas-spawn.ts sales.csv
+
+# Test EDA dashboard rendering (current terminal)
+bun test-eda-dashboard.tsx sales.csv
 ```
 
 ## Sample Data
 
+- `sample_data/sales.csv` - Small dataset (32 rows)
 - `sample_data/ai_adoption_dataset.csv` - Large synthetic dataset (145k rows)
-- `sample_data/sales.csv` - Small real-looking dataset (32 rows)
 
 ## Key Files
 
 - `src/canvases/analytics/insights.ts` - Intelligent EDA with synthetic detection
 - `src/canvases/analytics/components/eda-dashboard.tsx` - Terminal dashboard
-- `src/canvases/analytics/browser-viz.ts` - Plotly browser visualizations
-- `src/canvases/analytics/stats.ts` - Statistical calculations
+- `src/api/canvas-api.ts` - Canvas spawning API (spawnAnalytics)
+- `src/terminal.ts` - Tmux split pane management
 
-## Development
+## Canvas Phases
 
-Use Bun for all development:
+- `eda` - Exploratory Data Analysis dashboard (default)
+- `selection` - Choose analysis type
+- `analysis` - Show specific analysis results
 
-```bash
-bun install          # Install dependencies
-bun test            # Run tests
-bun run src/cli.ts  # Run CLI
-```
+## Requirements
+
+- **tmux** - Canvas spawns in tmux split pane
+- **Bun** - Runtime
+- **Terminal with Unicode** - For braille charts
