@@ -3,6 +3,12 @@
 
 import type { DataSet, AnalysisResult, ColumnStats } from "./types";
 
+/**
+ * Threshold for large dataset sampling
+ */
+const LARGE_DATASET_THRESHOLD = 100000;
+const SAMPLE_SIZE = 10000;
+
 export interface DataInsight {
   category: "quality" | "pattern" | "anomaly" | "finding" | "warning";
   title: string;
@@ -137,8 +143,14 @@ function detectSyntheticData(
   const { rows } = data;
   const { correlations, statistics, summary } = analysis;
 
+  // For large datasets, use sampling for performance
+  const useSampling = rows.length > LARGE_DATASET_THRESHOLD;
+  const effectiveRows = useSampling
+    ? rows.filter((_, i) => i % Math.ceil(rows.length / SAMPLE_SIZE) === 0).slice(0, SAMPLE_SIZE)
+    : rows;
+
   // Check 1: Zero missing values with large dataset
-  if ((summary?.missingPercent || 0) === 0 && rows.length > 1000) {
+  if ((summary?.missingPercent || 0) === 0 && effectiveRows.length > 1000) {
     reasons.push("Zero missing values in a large dataset (real data almost always has some missing values)");
   }
 
@@ -154,20 +166,22 @@ function detectSyntheticData(
   if (statistics) {
     const numericStats = Object.entries(statistics).filter(([_, s]) => s.type === "numeric");
     for (const [col, stats] of numericStats) {
-      if (stats.min === 0 && stats.max === 100 && rows.length > 1000) {
+      if (stats.min === 0 && stats.max === 100 && effectiveRows.length > 1000) {
         // Check if distribution is suspiciously uniform
         const colIdx = data.columns.indexOf(col);
         if (colIdx >= 0) {
-          const values = rows.map(r => r[colIdx]).filter((v): v is number => typeof v === "number");
-          const buckets = new Array(5).fill(0);
-          for (const v of values) {
-            const bucket = Math.min(4, Math.floor(v / 20));
-            buckets[bucket]++;
-          }
-          const avgBucket = values.length / 5;
-          const maxDeviation = Math.max(...buckets.map(b => Math.abs(b - avgBucket) / avgBucket));
-          if (maxDeviation < 0.05) {
-            reasons.push(`${col} has suspiciously perfect uniform distribution (each 20% bucket has ~equal counts)`);
+          const values = effectiveRows.map(r => r[colIdx]).filter((v): v is number => typeof v === "number");
+          if (values.length > 0) {
+            const buckets = new Array(5).fill(0);
+            for (const v of values) {
+              const bucket = Math.min(4, Math.floor(v / 20));
+              buckets[bucket]++;
+            }
+            const avgBucket = values.length / 5;
+            const maxDeviation = Math.max(...buckets.map(b => Math.abs(b - avgBucket) / avgBucket));
+            if (maxDeviation < 0.05) {
+              reasons.push(`${col} has suspiciously perfect uniform distribution (each 20% bucket has ~equal counts)`);
+            }
           }
         }
       }
@@ -178,7 +192,7 @@ function detectSyntheticData(
   const categoricalCols = Object.entries(statistics || {}).filter(([_, s]) => s.type === "categorical");
   const numericCols = Object.entries(statistics || {}).filter(([_, s]) => s.type === "numeric");
 
-  if (categoricalCols.length > 0 && numericCols.length > 0 && rows.length > 1000) {
+  if (categoricalCols.length > 0 && numericCols.length > 0 && effectiveRows.length > 1000) {
     // Sample check: means should vary by category in real data
     for (const [catCol, catStats] of categoricalCols.slice(0, 2)) {
       for (const [numCol, numStats] of numericCols.slice(0, 1)) {
@@ -187,7 +201,7 @@ function detectSyntheticData(
 
         if (catIdx >= 0 && numIdx >= 0) {
           const groupMeans = new Map<string, number[]>();
-          for (const row of rows) {
+          for (const row of effectiveRows) {
             const cat = String(row[catIdx]);
             const num = row[numIdx];
             if (typeof num === "number") {
@@ -304,16 +318,18 @@ function generateFindings(
   // Finding: Data imbalance
   if (statistics) {
     for (const [col, stats] of Object.entries(statistics)) {
-      if (stats.type === "categorical" && stats.topValues) {
+      if (stats.type === "categorical" && stats.topValues && stats.topValues.length > 0) {
         const total = stats.topValues.reduce((sum, v) => sum + v.count, 0);
-        const topPct = (stats.topValues[0].count / total) * 100;
-        if (topPct > 60) {
-          findings.push({
-            category: "pattern",
-            title: `Imbalanced: ${col}`,
-            description: `"${stats.topValues[0].value}" dominates with ${topPct.toFixed(0)}% of values`,
-            severity: "info",
-          });
+        if (total > 0) {
+          const topPct = (stats.topValues[0].count / total) * 100;
+          if (topPct > 60) {
+            findings.push({
+              category: "pattern",
+              title: `Imbalanced: ${col}`,
+              description: `"${stats.topValues[0].value}" dominates with ${topPct.toFixed(0)}% of values`,
+              severity: "info",
+            });
+          }
         }
       }
     }
