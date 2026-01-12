@@ -3,13 +3,24 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useApp } from "ink";
 import { connectWithRetry, type IPCClient } from "../../../ipc/client";
-import type { CanvasMessage, ControllerMessage } from "../../../ipc/types";
+import type { CanvasMessage, ControllerMessage, ViewState, HighlightTarget, DataFilter, DrilldownContext, ExportOptions } from "../../../ipc/types";
 
 export interface UseIPCOptions {
   socketPath: string | undefined;
   scenario: string;
   onClose?: () => void;
   onUpdate?: (config: unknown) => void;
+  onGetViewState?: () => ViewState | null;        // Called when controller requests view state
+  onHighlight?: (target: HighlightTarget) => void; // Called when controller wants to highlight
+  onClearHighlights?: () => void;                  // Called to clear all highlights
+  onFocus?: (element: string) => void;             // Called to scroll element into view
+  // Phase 6: Interactive features
+  onApplyFilter?: (filter: DataFilter) => void;   // Called when controller applies a filter
+  onClearFilters?: () => void;                    // Called to clear all filters
+  onDrilldown?: (context: DrilldownContext) => void; // Called for drilldown
+  onSwitchChart?: (chartType: string) => void;    // Called to switch chart type
+  onExport?: (options: ExportOptions) => void;    // Called for export
+  onAnswerQuestion?: (id: string, answer: string) => void; // Called when controller answers a question
 }
 
 export interface IPCHandle {
@@ -18,20 +29,56 @@ export interface IPCHandle {
   sendSelected: (data: unknown) => void;
   sendCancelled: (reason?: string) => void;
   sendError: (message: string) => void;
+  sendViewState: (state: ViewState) => void;       // Send current view state to controller
 }
 
 export function useIPC(options: UseIPCOptions): IPCHandle {
-  const { socketPath, scenario, onClose, onUpdate } = options;
+  const {
+    socketPath,
+    scenario,
+    onClose,
+    onUpdate,
+    onGetViewState,
+    onHighlight,
+    onClearHighlights,
+    onFocus,
+    onApplyFilter,
+    onClearFilters,
+    onDrilldown,
+    onSwitchChart,
+    onExport,
+    onAnswerQuestion,
+  } = options;
   const { exit } = useApp();
   const [isConnected, setIsConnected] = useState(false);
   const clientRef = useRef<IPCClient | null>(null);
   const onCloseRef = useRef(onClose);
   const onUpdateRef = useRef(onUpdate);
+  const onGetViewStateRef = useRef(onGetViewState);
+  const onHighlightRef = useRef(onHighlight);
+  const onClearHighlightsRef = useRef(onClearHighlights);
+  const onFocusRef = useRef(onFocus);
+  const onApplyFilterRef = useRef(onApplyFilter);
+  const onClearFiltersRef = useRef(onClearFilters);
+  const onDrilldownRef = useRef(onDrilldown);
+  const onSwitchChartRef = useRef(onSwitchChart);
+  const onExportRef = useRef(onExport);
+  const onAnswerQuestionRef = useRef(onAnswerQuestion);
 
   useEffect(() => {
     onCloseRef.current = onClose;
     onUpdateRef.current = onUpdate;
-  }, [onClose, onUpdate]);
+    onGetViewStateRef.current = onGetViewState;
+    onHighlightRef.current = onHighlight;
+    onClearHighlightsRef.current = onClearHighlights;
+    onFocusRef.current = onFocus;
+    onApplyFilterRef.current = onApplyFilter;
+    onClearFiltersRef.current = onClearFilters;
+    onDrilldownRef.current = onDrilldown;
+    onSwitchChartRef.current = onSwitchChart;
+    onExportRef.current = onExport;
+    onAnswerQuestionRef.current = onAnswerQuestion;
+  }, [onClose, onUpdate, onGetViewState, onHighlight, onClearHighlights, onFocus, onApplyFilter, onClearFilters, onDrilldown, onSwitchChart, onExport, onAnswerQuestion]);
 
   // Connect to controller on mount
   useEffect(() => {
@@ -54,6 +101,41 @@ export function useIPC(options: UseIPCOptions): IPCHandle {
                 break;
               case "ping":
                 client.send({ type: "pong" });
+                break;
+              case "getViewState": {
+                const viewState = onGetViewStateRef.current?.();
+                if (viewState) {
+                  client.send({ type: "viewState", data: viewState });
+                }
+                break;
+              }
+              case "highlight":
+                onHighlightRef.current?.(msg.target);
+                break;
+              case "clearHighlights":
+                onClearHighlightsRef.current?.();
+                break;
+              case "focus":
+                onFocusRef.current?.(msg.element);
+                break;
+              // Phase 6: Interactive features
+              case "applyFilter":
+                onApplyFilterRef.current?.(msg.filter);
+                break;
+              case "clearFilters":
+                onClearFiltersRef.current?.();
+                break;
+              case "drilldown":
+                onDrilldownRef.current?.(msg.context);
+                break;
+              case "switchChart":
+                onSwitchChartRef.current?.(msg.chartType);
+                break;
+              case "export":
+                onExportRef.current?.(msg.options);
+                break;
+              case "answerQuestion":
+                onAnswerQuestionRef.current?.(msg.id, msg.answer);
                 break;
             }
           },
@@ -105,11 +187,16 @@ export function useIPC(options: UseIPCOptions): IPCHandle {
     clientRef.current?.send({ type: "error", message });
   }, []);
 
+  const sendViewState = useCallback((state: ViewState) => {
+    clientRef.current?.send({ type: "viewState", data: state });
+  }, []);
+
   return {
     isConnected,
     sendReady,
     sendSelected,
     sendCancelled,
     sendError,
+    sendViewState,
   };
 }

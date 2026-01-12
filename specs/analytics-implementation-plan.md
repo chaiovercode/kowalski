@@ -186,35 +186,40 @@ This document outlines the implementation plan for Kowalski Analytics, with refe
 
 **Completed:** 2026-01-13
 **Tests:** 27 passing tests in `src/canvases/analytics/__tests__/memory.test.ts`
-**Commit:** (pending)
+**Commit:** 974f08f
 
 ---
 
-## Phase 6: Terminal Dashboard Enhancements
+## Phase 6: Terminal Dashboard Enhancements ✅ COMPLETE
 
-### 6.1 Interactive Features
-- [ ] Extend `eda-dashboard.tsx` with interaction handlers [Spec §3.6.1, REF: INT-001]
-- [ ] Implement filter panel component:
-  - [ ] Numeric range sliders (keyboard controlled)
-  - [ ] Categorical value checkboxes
-  - [ ] Date range picker
-- [ ] Add drill-down on data points:
-  - [ ] Arrow keys to select
-  - [ ] Enter to expand details
-- [ ] Implement chart type switcher (1-4 number keys)
+### 6.1 Interactive Features ✅
+- [x] Extend `eda-dashboard.tsx` with interaction handlers [Spec §3.6.1, REF: INT-001]
+- [x] Implement filter panel component (filter-panel.tsx):
+  - [x] Numeric range sliders (keyboard controlled)
+  - [x] Categorical value checkboxes
+  - [x] Date range picker
+- [x] Add drill-down on data points (interactive-dashboard.tsx):
+  - [x] Arrow keys to select/scroll
+  - [x] Enter to expand details
+- [x] Implement chart type switcher (1-4 number keys)
 
-### 6.2 Live Updates
-- [ ] Extend IPC messages for interactive features [Spec §5.7]
-- [ ] Implement `filter` message handler
-- [ ] Implement `drilldown` message handler
-- [ ] Add `userQuestion` message (canvas → Claude)
-- [ ] Support real-time dashboard refresh [Spec §3.6.2, REF: INT-002]
+### 6.2 Live Updates ✅
+- [x] Extend IPC messages for interactive features [Spec §5.7]
+  - [x] Added DataFilter, DrilldownContext, UserQuestion, ExportOptions types
+- [x] Implement `applyFilter` message handler
+- [x] Implement `drilldown` message handler
+- [x] Add `userQuestion` message (canvas → Claude)
+- [x] Support real-time dashboard refresh [Spec §3.6.2, REF: INT-002]
 
-### 6.3 Export from Terminal
-- [ ] Add export menu (E key)
-- [ ] Implement CSV export of filtered data
-- [ ] Implement JSON export of analysis results
-- [ ] Show export confirmation with path
+### 6.3 Export from Terminal ✅
+- [x] Add export menu (E key triggers ExportMenu)
+- [x] Implement CSV export of filtered data (export.ts)
+- [x] Implement JSON export of analysis results with metadata
+- [x] Show export confirmation with path
+
+**Completed:** 2026-01-13
+**Tests:** 32 passing tests in export.test.ts and interactive.test.ts
+**Commit:** (pending)
 
 ---
 
