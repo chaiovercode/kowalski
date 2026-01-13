@@ -11,6 +11,18 @@ Data analysis skill for Claude Code. Drop a CSV, get insights.
 - Remembers previous analyses and finds connections
 - Tells you what to do next
 
+## Setup
+
+```bash
+# Clone
+git clone https://github.com/chaiovercode/kowalski.git
+
+# Copy the command to Claude
+cp kowalski/commands/kowalski.md ~/.claude/commands/
+```
+
+Done. Now use `/kowalski` in Claude Code.
+
 ## Usage
 
 ```
@@ -36,12 +48,6 @@ KEY FINDINGS                        │ West │████████ 11.2K
 ╭─────────────────────────────────╮ │ Complete ████████ 100%
 │ Ready for analysis.             │ │
 ╰─────────────────────────────────╯ │
-```
-
-## Install
-
-```bash
-bun add kowalski-analytics
 ```
 
 ---
