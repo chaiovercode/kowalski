@@ -35,8 +35,25 @@ This returns JSON with the analysis results. Parse it and display using the form
 
 ### Output Format (CRITICAL - Follow this exactly)
 
-Do NOT print the KOWALSKI ANALYSIS banner - it's already shown when the skill starts.
-Print a two-column EDA dashboard with braille visualizations:
+First, print the KOWALSKI ANALYSIS ASCII banner:
+
+```
+██╗  ██╗ ██████╗ ██╗    ██╗ █████╗ ██╗     ███████╗██╗  ██╗██╗
+██║ ██╔╝██╔═══██╗██║    ██║██╔══██╗██║     ██╔════╝██║ ██╔╝██║
+█████╔╝ ██║   ██║██║ █╗ ██║███████║██║     ███████╗█████╔╝ ██║
+██╔═██╗ ██║   ██║██║███╗██║██╔══██║██║     ╚════██║██╔═██╗ ██║
+██║  ██╗╚██████╔╝╚███╔███╔╝██║  ██║███████╗███████║██║  ██╗██║
+╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝ ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝
+
+ █████╗ ███╗   ██╗ █████╗ ██╗  ██╗   ██╗███████╗██╗███████╗
+██╔══██╗████╗  ██║██╔══██╗██║  ╚██╗ ██╔╝██╔════╝██║██╔════╝
+███████║██╔██╗ ██║███████║██║   ╚████╔╝ ███████╗██║███████╗
+██╔══██║██║╚██╗██║██╔══██║██║    ╚██╔╝  ╚════██║██║╚════██║
+██║  ██║██║ ╚████║██║  ██║███████╗██║   ███████║██║███████║
+╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝╚═╝   ╚══════╝╚═╝╚══════╝
+```
+
+Then print a two-column EDA dashboard with braille visualizations:
 
 ```
 ◆ EDA: {filename}                               │ QUICK STATS
@@ -94,13 +111,41 @@ Kowalski standing by. Ask follow-up questions or "/kowalski ask <question>".
 
 ### When invoked without arguments:
 
-Show memory status:
-```typescript
-import { formatMemoryStatus } from "kowalski-analytics";
-console.log(formatMemoryStatus());
-```
+First, print the KOWALSKI ANALYSIS ASCII banner (same as above).
 
-Also scan current directory for data files and list them.
+Then check for memory and available data files:
+1. Use Glob to check if `kowalski.md` exists (pattern: `kowalski.md`)
+2. Use Glob to find available data files (pattern: `**/*.csv`)
+3. ONLY read `kowalski.md` if Glob found it exists - never attempt to read it if it doesn't exist
+
+Display:
+- Number of datasets remembered (0 if no kowalski.md)
+- List of known datasets with their key findings (if any)
+- Available data files in the current directory
+- Suggested next commands
+
+Format like a military status report:
+```
+🐧 KOWALSKI STATUS REPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MEMORY: {n} datasets remembered
+┌────────────────────────────────────────────────────────────┐
+│ {dataset1} - {key finding}                                 │
+│ {dataset2} - {key finding}                                 │
+│ (or "No intel yet. Run /kowalski <file> to begin.")        │
+└────────────────────────────────────────────────────────────┘
+
+AVAILABLE FOR ANALYSIS:
+{list of .csv/.json files in directory}
+
+COMMANDS:
+  /kowalski <file>    - Analyze a dataset
+  /kowalski ask <q>   - Query remembered data
+  /kowalski compare   - Compare datasets
+
+Kowalski standing by, Skipper.
+```
 
 ### When invoked with "compare <file1> <file2>":
 

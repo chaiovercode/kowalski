@@ -103,18 +103,15 @@ export async function rememberAnalysis(
   // Check if we already have this file
   const existingIndex = session.memories.findIndex(m => m.filepath === filepath);
 
-  // Also save to local kowalski.md in the file's directory
+  // Also save to local kowalski.md in the current working directory
   try {
-    // Resolve to absolute path in case relative path was passed
-    const absolutePath = resolve(filepath);
-    const projectDir = dirname(absolutePath);
-    const localMemory = new MemoryManager(projectDir);
+    const localMemory = new MemoryManager(process.cwd());
     await localMemory.load();
     localMemory.rememberDataset(data);
     localMemory.recordAnalysisFindings(data.name, analysis);
     await localMemory.save();
   } catch (e) {
-    // Ignore errors with local memory, global session memory still works
+    // Silently fail - global session memory still works
   }
 
   const memory: AnalysisMemory = {
