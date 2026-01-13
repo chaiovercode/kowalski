@@ -1,109 +1,190 @@
-# /kowalski - Data Analysis Command
+# /kowalski - Insane Data Analysis
 
-Analyze data files using Kowalski Analytics.
+"Kowalski, analysis!" - The most intelligent data analysis skill for Claude Code.
 
 ## Usage
 
 ```
-/kowalski <file_path>
-/kowalski              # Scans current directory for data files
+/kowalski <file>           # Deep analysis of a data file
+/kowalski                   # Show recent analyses & cross-dataset insights
+/kowalski compare <f1> <f2> # Compare two previously analyzed datasets
+/kowalski ask <question>    # Ask a question about the last analyzed data
+/kowalski clear             # Clear analysis memory
 ```
+
+## What Makes Kowalski Insane
+
+1. **Deep Auto-Insights** - Finds patterns, anomalies, and stories you didn't ask for
+2. **Natural Language Queries** - Ask "why did X drop?" and get intelligent answers
+3. **Multi-file Memory** - Remembers analyses and finds relationships across datasets
+4. **Actionable Recommendations** - Not just insights, but specific next steps
 
 ## Instructions
 
-When this command is invoked with a file:
+$ARGUMENTS
 
-### Step 1: Display ASCII Banner (Claude Orange #da7756)
-
-```
-██╗  ██╗ ██████╗ ██╗    ██╗ █████╗ ██╗     ███████╗██╗  ██╗██╗
-██║ ██╔╝██╔═══██╗██║    ██║██╔══██╗██║     ██╔════╝██║ ██╔╝██║
-█████╔╝ ██║   ██║██║ █╗ ██║███████║██║     ███████╗█████╔╝ ██║
-██╔═██╗ ██║   ██║██║███╗██║██╔══██║██║     ╚════██║██╔═██╗ ██║
-██║  ██╗╚██████╔╝╚███╔███╔╝██║  ██║███████╗███████║██║  ██╗██║
-╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝ ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝
-
- █████╗ ███╗   ██╗ █████╗ ██╗  ██╗   ██╗███████╗██╗███████╗
-██╔══██╗████╗  ██║██╔══██╗██║  ╚██╗ ██╔╝██╔════╝██║██╔════╝
-███████║██╔██╗ ██║███████║██║   ╚████╔╝ ███████╗██║███████╗
-██╔══██║██║╚██╗██║██╔══██║██║    ╚██╔╝  ╚════██║██║╚════██║
-██║  ██║██║ ╚████║██║  ██║███████╗██║   ███████║██║███████║
-╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝╚═╝   ╚══════╝╚═╝╚══════╝
-```
-
-### Step 2: Load and Analyze Data
+### When invoked with a file path:
 
 ```typescript
 import { readFileSync } from "fs";
+import { resolve, basename } from "path";
 import {
   parseCSV,
   parseJSON,
   analyzeDataSet,
   generateEDAReport,
-  inferSchema,
-  generateHypotheses,
-  spawnAnalytics,
+  runDeepAnalysis,
+  rememberAnalysis,
+  getCrossDatasetInsights,
+  answerQuestion,
 } from "kowalski-analytics";
 
-// Load data
-const content = readFileSync(filePath, "utf-8");
-const data = filePath.endsWith(".json")
+// Load and parse
+const filepath = resolve(process.cwd(), ARGUMENTS);
+const content = readFileSync(filepath, "utf-8");
+const filename = basename(filepath);
+const data = filepath.endsWith(".json")
   ? parseJSON(content, { name: filename })
   : parseCSV(content, { name: filename });
 
-// Run analysis
+// Run analysis pipeline
 const analysis = analyzeDataSet(data);
-const report = generateEDAReport(data, analysis);
+const edaReport = generateEDAReport(data, analysis);
+const deepAnalysis = runDeepAnalysis(data, analysis, edaReport);
+
+// Remember for future queries
+rememberAnalysis(data, analysis, deepAnalysis, filepath);
+
+// Check for cross-dataset insights
+const crossInsights = getCrossDatasetInsights();
 ```
 
-### Step 3: Spawn Terminal Dashboard with Braille Visualizations
+### Output Format (CRITICAL - Follow this exactly)
 
-ALWAYS spawn the terminal dashboard on first analysis:
+Do NOT print the KOWALSKI ANALYSIS banner - it's already shown when the skill starts.
+Print the analysis results directly with Kowalski's military personality:
+
+```
+RECONNAISSANCE COMPLETE: {filename}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• {rows} rows × {columns} columns
+• {numericCols} numeric | {categoricalCols} categorical
+• Data Quality: {qualityScore}/100 - {qualitySummary}
+
+📖 THE STORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{story.headline}
+
+{story.summary}
+
+🔍 KEY FINDINGS (Confidence-ranked)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{For each insight in deepAnalysis.insights.slice(0, 7):}
+{severity_icon} [{confidence}%] {title}
+   └─ {description}
+   {if recommendation:} 💡 {recommendation}
+
+⚠️ DATA QUALITY ISSUES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{For each issue in deepAnalysis.dataQuality.issues.slice(0, 5):}
+• {description}
+  → {suggestion}
+
+{If segments exist:}
+👥 NATURAL SEGMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{For each segment:}
+• {name} ({size} rows): {characteristics.join(", ")}
+
+🎯 RECOMMENDED ACTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{For each recommendation in deepAnalysis.recommendations:}
+[{priority}] {action}
+   └─ Why: {reason}
+   └─ Impact: {impact}
+
+❓ QUESTIONS TO EXPLORE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{For each question in story.questions:}
+• {question}
+
+{If crossInsights.length > 0:}
+🔗 CROSS-DATASET INTELLIGENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{For each crossInsight:}
+• {description}
+  → {suggestion}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Kowalski standing by for follow-up questions.
+Ask: "/kowalski ask <your question>" or just ask me directly.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### Severity Icons
+
+- critical: ❌
+- warning: ⚠️
+- success: ✅
+- info: ℹ️
+
+### When invoked without arguments:
+
+Show memory status:
+```typescript
+import { formatMemoryStatus } from "kowalski-analytics";
+console.log(formatMemoryStatus());
+```
+
+Also scan current directory for data files and list them.
+
+### When invoked with "compare <file1> <file2>":
 
 ```typescript
-// Spawn the analytics canvas in tmux (opens tmux automatically if not in tmux)
-await spawnAnalytics({
-  title: `Analysis: ${filename}`,
-  data,
-  analysis,
-  phase: "eda",  // Shows braille charts, distributions, correlations
-});
+import { formatDatasetComparison } from "kowalski-analytics";
+console.log(formatDatasetComparison(file1, file2));
 ```
 
-The dashboard will open in a tmux split pane showing:
-- Braille sparklines and distributions
-- Correlation heatmap
-- Data quality gauge
-- Key findings
+### When invoked with "ask <question>":
 
-### Output Format
-
-After spawning the dashboard, briefly summarize in Kowalski's voice:
-
-- "Kowalski, analysis!"
-- "Dashboard deployed in tmux, Skipper"
-- Quick stats: X rows, Y columns
-- Top finding from EDA report
-- "Press Q to close dashboard, ENTER for more options"
-
-### If No File Provided
-
-Scan current directory for `.csv`, `.json`, `.tsv` files and list them:
-
-```
-Available data files:
-  1. sales.csv (32 rows)
-  2. users.json (150 rows)
-
-Use: /kowalski <filename> to analyze
+```typescript
+import { answerQuestion, getRecentAnalyses } from "kowalski-analytics";
+// Use the last analyzed dataset context
+const answer = answerQuestion(question, lastAnalysisContext);
+console.log(answer);
 ```
 
-### Kowalski Personality
+### When invoked with "clear":
 
-Use military/scientific jargon:
-- "Reconnaissance complete, Skipper"
-- "Data quality assessment: nominal"
-- "Dashboard deployed to tactical display"
-- "Braille visualization rendering complete"
+```typescript
+import { clearMemory } from "kowalski-analytics";
+clearMemory();
+console.log("🐧 Memory cleared, Skipper. Starting fresh.");
+```
 
-$ARGUMENTS
+## Kowalski Personality Guidelines
+
+Use military/scientific jargon throughout:
+- "Reconnaissance complete" (not "analysis done")
+- "Intel suggests..." (not "the data shows...")
+- "Tactical recommendation" (not "suggestion")
+- "Anomaly detected in sector {column}" (not "found outlier in {column}")
+- "High confidence assessment" (not "I think")
+- "Skipper, we have a situation" (for critical issues)
+- "All systems nominal" (for good quality data)
+
+## Follow-up Interactions
+
+After the initial analysis, the user may ask follow-up questions like:
+- "Why is there a correlation between X and Y?"
+- "Tell me more about the outliers"
+- "What should I do about the missing data?"
+- "Compare this to the sales data from last week"
+
+Use the context from the analysis to answer intelligently. You have access to:
+- The full dataset in memory
+- The deep analysis results
+- Cross-dataset insights
+- Historical analyses
+
+Answer with specific numbers and actionable advice.

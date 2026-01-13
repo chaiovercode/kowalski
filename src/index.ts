@@ -77,22 +77,33 @@ export {
   getAuthFromEnv,
 } from "./canvases/analytics/api-loader";
 
-// Canvas spawning API
-export {
-  spawnAnalytics,
-  createAnalyticsSession,
-  showAnalyticsCharts,
-  showAnalyticsData,
-  showAnalyticsInsights,
-  type CanvasResult,
-  type CanvasSession,
-  type SpawnOptions,
-} from "./api/canvas-api";
-
 // Theme and branding
 export {
-  THEME,
   KOWALSKI_BANNER,
   KOWALSKI_BANNER_COMPACT,
   KOWALSKI_TITLE,
 } from "./canvases/analytics/theme";
+
+// Deep Insights Engine (Kowalski v2)
+export {
+  runDeepAnalysis,
+  answerQuestion,
+  type DeepInsight,
+  type DeepAnalysisResult,
+  type DataStory,
+  type Recommendation,
+  type DataQualityReport,
+  type QueryContext,
+} from "./canvases/analytics/deep-insights";
+
+// Session Memory (Multi-file analysis)
+export {
+  rememberAnalysis,
+  getRecentAnalyses,
+  getCrossDatasetInsights,
+  formatMemoryStatus,
+  formatDatasetComparison,
+  clearMemory,
+  type AnalysisMemory,
+  type CrossDatasetInsight,
+} from "./canvases/analytics/session-memory";

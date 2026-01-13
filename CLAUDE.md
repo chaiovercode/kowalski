@@ -2,16 +2,26 @@
 
 > "Kowalski, analysis!" - Skipper
 
-When users ask to analyze data, load CSV/JSON files, or create visualizations, spawn the analytics canvas in a tmux split pane.
+Insane data analysis skill for Claude Code. Deep insights, multi-file memory, actionable recommendations.
 
-## Spawning the Canvas (REQUIRED)
+## Usage
 
-**Canvas uses tmux for split panes.** If not already in tmux, a new terminal window with tmux will open automatically.
-
-Best experience: Run `claude` inside tmux for seamless split panes:
-```bash
-tmux && claude
 ```
+/kowalski <file>              # Deep analysis of a data file
+/kowalski                     # Show recent analyses & cross-dataset insights
+/kowalski compare <f1> <f2>   # Compare two previously analyzed datasets
+/kowalski ask <question>      # Ask about the last analyzed data
+/kowalski clear               # Clear analysis memory
+```
+
+## What Makes Kowalski Insane
+
+1. **Deep Auto-Insights** - Finds patterns, anomalies, and stories you didn't ask for
+2. **Natural Language Queries** - Ask "why did X drop?" and get intelligent answers
+3. **Multi-file Memory** - Remembers analyses and finds relationships across datasets
+4. **Actionable Recommendations** - Not just insights, but specific next steps
+
+## API Usage
 
 ```typescript
 import { readFileSync } from "fs";
@@ -19,71 +29,44 @@ import {
   parseCSV,
   analyzeDataSet,
   generateEDAReport,
-  spawnAnalytics,
+  runDeepAnalysis,
+  rememberAnalysis,
+  getCrossDatasetInsights,
 } from "kowalski-analytics";
 
-// Load and analyze data
-const csvContent = readFileSync("path/to/file.csv", "utf-8");
-const data = parseCSV(csvContent, { name: "file.csv" });
+// Load and parse
+const content = readFileSync("data.csv", "utf-8");
+const data = parseCSV(content, { name: "data.csv" });
+
+// Run analysis pipeline
 const analysis = analyzeDataSet(data);
-const report = generateEDAReport(data, analysis);
+const edaReport = generateEDAReport(data, analysis);
+const deepAnalysis = runDeepAnalysis(data, analysis, edaReport);
 
-// Spawn canvas in tmux split pane (opens tmux automatically if not in tmux)
-const result = await spawnAnalytics({
-  title: "My Analysis",
-  data,
-  analysis,
-  phase: "eda",  // Start with EDA dashboard
-});
+// Remember for future queries
+rememberAnalysis(data, analysis, deepAnalysis, "data.csv");
 
-// Handle result
-if (result.cancelled) {
-  console.log("User closed the canvas");
-} else if (result.data) {
-  console.log("User selected:", result.data);
-}
-```
+// Check cross-dataset insights
+const crossInsights = getCrossDatasetInsights();
 
-## CLI Commands
-
-```bash
-# Spawn canvas in tmux split (recommended)
-bun run src/cli.ts spawn analytics --config '{"title":"Test"}'
-
-# Show canvas in current terminal (for testing)
-bun run src/cli.ts show analytics --scenario dashboard
-```
-
-## Test Scripts
-
-```bash
-# Test canvas spawning in tmux
-bun test-canvas-spawn.ts sales.csv
-
-# Test EDA dashboard rendering (current terminal)
-bun test-eda-dashboard.tsx sales.csv
+// Access results
+console.log(deepAnalysis.story.headline);
+console.log(deepAnalysis.insights);
+console.log(deepAnalysis.recommendations);
+console.log(deepAnalysis.dataQuality);
 ```
 
 ## Sample Data
 
-- `sample_data/sales.csv` - Small dataset (32 rows)
-- `sample_data/ai_adoption_dataset.csv` - Large synthetic dataset (145k rows)
+- `sample_data/sales.csv` - Sales data (32 rows)
+- `sample_data/related_tables/` - Related tables for join testing
 
-## Key Files
+## Key Exports
 
-- `src/canvases/analytics/insights.ts` - Intelligent EDA with synthetic detection
-- `src/canvases/analytics/components/eda-dashboard.tsx` - Terminal dashboard
-- `src/api/canvas-api.ts` - Canvas spawning API (spawnAnalytics)
-- `src/terminal.ts` - Tmux split pane management
-
-## Canvas Phases
-
-- `eda` - Exploratory Data Analysis dashboard (default)
-- `selection` - Choose analysis type
-- `analysis` - Show specific analysis results
-
-## Requirements
-
-- **tmux** - Canvas spawns in tmux split pane
-- **Bun** - Runtime
-- **Terminal with Unicode** - For braille charts
+- `parseCSV`, `parseJSON` - Data loading
+- `analyzeDataSet` - Core statistical analysis
+- `generateEDAReport` - EDA insights
+- `runDeepAnalysis` - Deep insights engine (patterns, anomalies, stories)
+- `rememberAnalysis` - Multi-file memory
+- `getCrossDatasetInsights` - Cross-dataset relationship discovery
+- `answerQuestion` - Natural language Q&A about data
