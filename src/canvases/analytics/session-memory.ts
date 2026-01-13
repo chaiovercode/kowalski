@@ -7,7 +7,7 @@ import type { DataSet, AnalysisResult } from "./types";
 import type { DeepAnalysisResult, DeepInsight } from "./deep-insights";
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from "fs";
 import { homedir } from "os";
-import { join, dirname } from "path";
+import { join, dirname, resolve } from "path";
 import { MemoryManager } from "./memory";
 
 // ============================================
@@ -105,7 +105,9 @@ export async function rememberAnalysis(
 
   // Also save to local kowalski.md in the file's directory
   try {
-    const projectDir = dirname(filepath);
+    // Resolve to absolute path in case relative path was passed
+    const absolutePath = resolve(filepath);
+    const projectDir = dirname(absolutePath);
     const localMemory = new MemoryManager(projectDir);
     await localMemory.load();
     localMemory.rememberDataset(data);
