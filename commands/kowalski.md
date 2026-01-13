@@ -27,8 +27,12 @@ $ARGUMENTS
 
 ```typescript
 import { readFileSync } from "fs";
-import { resolve, basename } from "path";
-import {
+import { resolve, basename, dirname } from "path";
+import { fileURLToPath } from "url";
+
+// Import from kowalski source (adjust path if installed elsewhere)
+const KOWALSKI_PATH = "/Users/vivek/Code/kowalski/src/index.ts";
+const {
   parseCSV,
   parseJSON,
   analyzeDataSet,
@@ -37,7 +41,7 @@ import {
   rememberAnalysis,
   getCrossDatasetInsights,
   answerQuestion,
-} from "kowalski-analytics";
+} = await import(KOWALSKI_PATH);
 
 // Load and parse
 const filepath = resolve(process.cwd(), ARGUMENTS);

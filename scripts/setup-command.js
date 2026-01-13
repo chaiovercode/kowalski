@@ -23,21 +23,26 @@ const MARKER_END = "<!-- kowalski-analytics-end -->";
 const KOWALSKI_CONFIG = `${MARKER_START}
 ## Data Analysis with Kowalski
 
-When analyzing CSV/JSON data files, use kowalski-analytics for deep insights:
+**IMPORTANT:** When analyzing ANY CSV/JSON file, run this code with bun:
 
-\`\`\`typescript
-import { parseCSV, analyzeDataSet, generateEDAReport, runDeepAnalysis, rememberAnalysis } from "${KOWALSKI_ROOT}/src/index.ts";
-import { readFileSync } from "fs";
+\`\`\`bash
+bun -e "
+import { readFileSync } from 'fs';
+import { parseCSV, analyzeDataSet, generateEDAReport, runDeepAnalysis, rememberAnalysis } from '${KOWALSKI_ROOT}/src/index.ts';
 
-const content = readFileSync(filepath, "utf-8");
-const data = parseCSV(content, { name: filename });
+const filepath = 'FILENAME_HERE';  // Replace with actual file
+const content = readFileSync(filepath, 'utf-8');
+const data = parseCSV(content, { name: filepath.split('/').pop() });
 const analysis = analyzeDataSet(data);
 const report = generateEDAReport(data, analysis);
 const deep = runDeepAnalysis(data, analysis, report);
-await rememberAnalysis(data, analysis, deep, filepath);  // Creates kowalski.md
+await rememberAnalysis(data, analysis, deep, filepath);
+
+console.log(JSON.stringify({ rows: data.rows.length, columns: data.columns, quality: deep.dataQuality.score, story: deep.story, insights: deep.insights.slice(0,5), recommendations: deep.recommendations }, null, 2));
+"
 \`\`\`
 
-This creates a \`kowalski.md\` memory file (not documentation) in the data folder.
+This creates \`kowalski.md\` with analysis memory.
 ${MARKER_END}`;
 
 function setup() {
