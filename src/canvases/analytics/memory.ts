@@ -114,7 +114,12 @@ const EMPTY_MEMORY: KowalskiMemory = {
 };
 
 /**
- * Memory section header in CLAUDE.md
+ * Memory file name
+ */
+const MEMORY_FILE_NAME = "kowalski.md";
+
+/**
+ * Memory section header in kowalski.md
  */
 const MEMORY_SECTION_START = "## Kowalski Intel";
 const MEMORY_SECTION_END = "<!-- /Kowalski Intel -->";
@@ -124,44 +129,44 @@ const MEMORY_SECTION_END = "<!-- /Kowalski Intel -->";
  */
 export class MemoryManager {
   private memory: KowalskiMemory;
-  private claudeMdPath: string;
+  private memoryFilePath: string;
   private dirty: boolean = false;
 
   constructor(projectRoot?: string) {
-    this.claudeMdPath = projectRoot
-      ? join(projectRoot, "CLAUDE.md")
-      : this.findClaudeMd();
+    this.memoryFilePath = projectRoot
+      ? join(projectRoot, MEMORY_FILE_NAME)
+      : this.findMemoryFile();
     // Create a fresh copy of empty memory to avoid shared state
     this.memory = this.createFreshMemory();
   }
 
   /**
-   * Find CLAUDE.md by walking up directories
+   * Find kowalski.md by walking up directories
    */
-  private findClaudeMd(): string {
+  private findMemoryFile(): string {
     let dir = process.cwd();
     while (dir !== "/") {
-      const candidate = join(dir, "CLAUDE.md");
+      const candidate = join(dir, MEMORY_FILE_NAME);
       if (existsSync(candidate)) {
         return candidate;
       }
       dir = dirname(dir);
     }
     // Default to current directory if not found
-    return join(process.cwd(), "CLAUDE.md");
+    return join(process.cwd(), MEMORY_FILE_NAME);
   }
 
   /**
-   * Load memory from CLAUDE.md
+   * Load memory from kowalski.md
    */
   async load(): Promise<void> {
-    if (!existsSync(this.claudeMdPath)) {
+    if (!existsSync(this.memoryFilePath)) {
       this.memory = this.createFreshMemory();
       return;
     }
 
     try {
-      const content = readFileSync(this.claudeMdPath, "utf-8");
+      const content = readFileSync(this.memoryFilePath, "utf-8");
       const parsed = this.parseMemoryFromMarkdown(content);
       if (parsed) {
         this.memory = parsed;
@@ -187,7 +192,7 @@ export class MemoryManager {
   }
 
   /**
-   * Save memory to CLAUDE.md
+   * Save memory to kowalski.md
    */
   async save(): Promise<void> {
     if (!this.dirty) return;
@@ -195,19 +200,24 @@ export class MemoryManager {
     this.memory.lastUpdated = new Date().toISOString();
 
     let content = "";
-    if (existsSync(this.claudeMdPath)) {
-      content = readFileSync(this.claudeMdPath, "utf-8");
+    const isNewFile = !existsSync(this.memoryFilePath);
+
+    if (!isNewFile) {
+      content = readFileSync(this.memoryFilePath, "utf-8");
+    } else {
+      // Add header for new file
+      content = "# Kowalski Memory\n\n> \"I never forget a dataset, Skipper. It's all up here.\"\n\nThis file stores Kowalski's memory across sessions. Feel free to commit it with your repo.\n\n";
     }
 
     const memoryMarkdown = this.serializeMemoryToMarkdown();
     content = this.insertOrReplaceMemorySection(content, memoryMarkdown);
 
-    writeFileSync(this.claudeMdPath, content, "utf-8");
+    writeFileSync(this.memoryFilePath, content, "utf-8");
     this.dirty = false;
   }
 
   /**
-   * Parse memory from CLAUDE.md content
+   * Parse memory from kowalski.md content
    */
   private parseMemoryFromMarkdown(content: string): KowalskiMemory | null {
     const startIdx = content.indexOf(MEMORY_SECTION_START);
@@ -240,7 +250,7 @@ export class MemoryManager {
   }
 
   /**
-   * Serialize memory to markdown format
+   * Serialize memory to markdown format for kowalski.md
    */
   private serializeMemoryToMarkdown(): string {
     const lines: string[] = [
@@ -299,7 +309,7 @@ export class MemoryManager {
   }
 
   /**
-   * Insert or replace memory section in CLAUDE.md content
+   * Insert or replace memory section in kowalski.md content
    */
   private insertOrReplaceMemorySection(content: string, memorySection: string): string {
     const startIdx = content.indexOf(MEMORY_SECTION_START);
