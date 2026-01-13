@@ -7,7 +7,8 @@ import type { DataSet, AnalysisResult } from "./types";
 import type { DeepAnalysisResult, DeepInsight } from "./deep-insights";
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from "fs";
 import { homedir } from "os";
-import { join } from "path";
+import { join, dirname } from "path";
+import { MemoryManager } from "./memory";
 
 // ============================================
 // Types
@@ -88,12 +89,12 @@ export function saveSession(state: SessionState): void {
 /**
  * Remember an analysis
  */
-export function rememberAnalysis(
+export async function rememberAnalysis(
   data: DataSet,
   analysis: AnalysisResult,
   deepAnalysis: DeepAnalysisResult,
   filepath: string
-): AnalysisMemory {
+): Promise<AnalysisMemory> {
   const session = loadSession();
 
   // Create checksum from first few rows
@@ -101,6 +102,18 @@ export function rememberAnalysis(
 
   // Check if we already have this file
   const existingIndex = session.memories.findIndex(m => m.filepath === filepath);
+
+  // Also save to local kowalski.md in the file's directory
+  try {
+    const projectDir = dirname(filepath);
+    const localMemory = new MemoryManager(projectDir);
+    await localMemory.load();
+    localMemory.rememberDataset(data);
+    localMemory.recordAnalysisFindings(data.name, analysis);
+    await localMemory.save();
+  } catch (e) {
+    // Ignore errors with local memory, global session memory still works
+  }
 
   const memory: AnalysisMemory = {
     id: `analysis-${Date.now()}`,
