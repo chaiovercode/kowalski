@@ -23,10 +23,8 @@ const MARKER_END = "<!-- kowalski-analytics-end -->";
 const KOWALSKI_CONFIG = `${MARKER_START}
 ## Data Analysis
 
-When analyzing data files, run:
-\`\`\`
-${KOWALSKI_ROOT}/bin/kowalski <filename>
-\`\`\`
+When analyzing data files, run: \`kowalski <filename>\`
+
 This saves analysis to \`kowalski.md\`.
 ${MARKER_END}`;
 

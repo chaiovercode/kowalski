@@ -70,3 +70,13 @@ console.log(deepAnalysis.dataQuality);
 - `rememberAnalysis` - Multi-file memory
 - `getCrossDatasetInsights` - Cross-dataset relationship discovery
 - `answerQuestion` - Natural language Q&A about data
+
+<!-- kowalski-analytics-start -->
+## Data Analysis
+
+When analyzing data files, run:
+```
+/Users/vivek/Code/kowalski/bin/kowalski <filename>
+```
+This saves analysis to `kowalski.md`.
+<!-- kowalski-analytics-end -->
