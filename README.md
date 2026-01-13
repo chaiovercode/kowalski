@@ -1,5 +1,7 @@
 # Kowalski Analytics
 
+![Kowalski](https://github.com/chaiovercode/kowalski/blob/main/kowalski.jpeg?raw=true)
+
 > "Kowalski, analysis!" - Skipper
 
 Data analysis skill for Claude Code. Drop a CSV, get insights.
