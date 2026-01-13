@@ -25,43 +25,13 @@ $ARGUMENTS
 
 ### When invoked with a file path:
 
-```typescript
-import { readFileSync } from "fs";
-import { resolve, basename, dirname } from "path";
-import { fileURLToPath } from "url";
+Run the kowalski CLI to analyze and save to memory:
 
-// Import from kowalski source (adjust path if installed elsewhere)
-const KOWALSKI_PATH = "/Users/vivek/Code/kowalski/src/index.ts";
-const {
-  parseCSV,
-  parseJSON,
-  analyzeDataSet,
-  generateEDAReport,
-  runDeepAnalysis,
-  rememberAnalysis,
-  getCrossDatasetInsights,
-  answerQuestion,
-} = await import(KOWALSKI_PATH);
-
-// Load and parse
-const filepath = resolve(process.cwd(), ARGUMENTS);
-const content = readFileSync(filepath, "utf-8");
-const filename = basename(filepath);
-const data = filepath.endsWith(".json")
-  ? parseJSON(content, { name: filename })
-  : parseCSV(content, { name: filename });
-
-// Run analysis pipeline
-const analysis = analyzeDataSet(data);
-const edaReport = generateEDAReport(data, analysis);
-const deepAnalysis = runDeepAnalysis(data, analysis, edaReport);
-
-// Remember for future queries
-rememberAnalysis(data, analysis, deepAnalysis, filepath);
-
-// Check for cross-dataset insights
-const crossInsights = getCrossDatasetInsights();
+```bash
+kowalski ARGUMENTS
 ```
+
+This returns JSON with the analysis results. Parse it and display using the format below.
 
 ### Output Format (CRITICAL - Follow this exactly)
 
