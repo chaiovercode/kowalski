@@ -62,63 +62,53 @@ const crossInsights = getCrossDatasetInsights();
 ### Output Format (CRITICAL - Follow this exactly)
 
 Do NOT print the KOWALSKI ANALYSIS banner - it's already shown when the skill starts.
-Print the analysis results directly with Kowalski's military personality:
+Print a two-column EDA dashboard with braille visualizations:
 
 ```
-RECONNAISSANCE COMPLETE: {filename}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-• {rows} rows × {columns} columns
-• {numericCols} numeric | {categoricalCols} categorical
-• Data Quality: {qualityScore}/100 - {qualitySummary}
+◆ EDA: {filename}                               │ QUICK STATS
+                                                │ {For each numeric column:}
+THE BASICS                                      │ {colName}   {sum}   {sparkline} {trend}
+{rows} rows • {columns} columns                 │
+                                                │ DISTRIBUTION: {topNumericCol}
+VARIABLES                                       │ {braille histogram}
+{For each categorical column:}                  │
+◆ {colName}      {unique} unique values         │ BY {topCategoricalCol}
+{For each numeric column:}                      │ {For each category:}
+# {colName}      {sum} {std} {min}→{max}        │ {category} │{bar} {value}
+                                                │
+KEY FINDINGS                                    │ CORRELATIONS
+{For each key finding:}                         │ {correlation matrix with braille blocks}
+ {icon} {finding}                               │      {col1} {col2} {col3}
+                                                │ {col1} ████ ████ ████
+╭──────────────────────────────────────────────╮│
+│ BOTTOM LINE                                  ││ DATA QUALITY
+│ {story.headline}                             ││ {qualityLabel} {qualityBar} {score}%
+╰──────────────────────────────────────────────╯│
+```
 
-📖 THE STORY
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-{story.headline}
+### Braille Characters for Visualizations
 
-{story.summary}
+Use these braille patterns for sparklines and charts:
+- Sparkline: ⠀⠁⠂⠃⠄⠅⠆⠇⡀⡁⡂⡃⡄⡅⡆⡇⠈⠉⠊⠋⠌⠍⠎⠏⡈⡉⡊⡋⡌⡍⡎⡏⠐⠑⠒⠓⠔⠕⠖⠗⡐⡑⡒⡓⡔⡕⡖⡗⠘⠙⠚⠛⠜⠝⠞⠟⡘⡙⡚⡛⡜⡝⡞⡟⠠⠡⠢⠣⠤⠥⠦⠧⡠⡡⡢⡣⡤⡥⡦⡧⠨⠩⠪⠫⠬⠭⠮⠯⡨⡩⡪⡫⡬⡭⡮⡯⠰⠱⠲⠳⠴⠵⠶⠷⡰⡱⡲⡳⡴⡵⡶⡷⠸⠹⠺⠻⠼⠽⠾⠿⡸⡹⡺⡻⡼⡽⡾⡿⢀⢁⢂⢃⢄⢅⢆⢇⣀⣁⣂⣃⣄⣅⣆⣇⢈⢉⢊⢋⢌⢍⢎⢏⣈⣉⣊⣋⣌⣍⣎⣏⢐⢑⢒⢓⢔⢕⢖⢗⣐⣑⣒⣓⣔⣕⣖⣗⢘⢙⢚⢛⢜⢝⢞⢟⣘⣙⣚⣛⣜⣝⣞⣟⢠⢡⢢⢣⢤⢥⢦⢧⣠⣡⣢⣣⣤⣥⣦⣧⢨⢩⢪⢫⢬⢭⢮⢯⣨⣩⣪⣫⣬⣭⣮⣯⢰⢱⢲⢳⢴⢵⢶⢷⣰⣱⣲⣳⣴⣵⣶⣷⢸⢹⢺⢻⢼⢽⢾⢿⣸⣹⣺⣻⣼⣽⣾⣿
+- Bar blocks: ▏▎▍▌▋▊▉█ or ░▒▓█ or ████
+- Trend arrows: ↑ ↓ → (with percentage)
 
-🔍 KEY FINDINGS (Confidence-ranked)
+### After EDA, show deep insights:
+
+```
+🔍 DEEP INSIGHTS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-{For each insight in deepAnalysis.insights.slice(0, 7):}
+{For each insight in deepAnalysis.insights.slice(0, 5):}
 {severity_icon} [{confidence}%] {title}
    └─ {description}
-   {if recommendation:} 💡 {recommendation}
-
-⚠️ DATA QUALITY ISSUES
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-{For each issue in deepAnalysis.dataQuality.issues.slice(0, 5):}
-• {description}
-  → {suggestion}
-
-{If segments exist:}
-👥 NATURAL SEGMENTS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-{For each segment:}
-• {name} ({size} rows): {characteristics.join(", ")}
 
 🎯 RECOMMENDED ACTIONS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-{For each recommendation in deepAnalysis.recommendations:}
+{For each recommendation in deepAnalysis.recommendations.slice(0, 3):}
 [{priority}] {action}
-   └─ Why: {reason}
-   └─ Impact: {impact}
+   └─ {reason}
 
-❓ QUESTIONS TO EXPLORE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-{For each question in story.questions:}
-• {question}
-
-{If crossInsights.length > 0:}
-🔗 CROSS-DATASET INTELLIGENCE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-{For each crossInsight:}
-• {description}
-  → {suggestion}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Kowalski standing by for follow-up questions.
-Ask: "/kowalski ask <your question>" or just ask me directly.
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Kowalski standing by. Ask follow-up questions or "/kowalski ask <question>".
 ```
 
 ### Severity Icons
