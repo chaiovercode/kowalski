@@ -2,20 +2,20 @@
 
 /**
  * Kowalski Analytics - Setup Script
- * Adds kowalski to user's global CLAUDE.md for automatic data analysis
+ * Adds kowalski to project's CLAUDE.md for automatic data analysis
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
-import { homedir } from "os";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const KOWALSKI_ROOT = dirname(__dirname);
 
-const CLAUDE_DIR = join(homedir(), ".claude");
-const CLAUDE_MD = join(CLAUDE_DIR, "CLAUDE.md");
+// Use current working directory (where npm install was run)
+const PROJECT_DIR = process.cwd();
+const CLAUDE_MD = join(PROJECT_DIR, "CLAUDE.md");
 
 const MARKER_START = "<!-- kowalski-analytics-start -->";
 const MARKER_END = "<!-- kowalski-analytics-end -->";
@@ -42,12 +42,6 @@ ${MARKER_END}`;
 
 function setup() {
   try {
-    // Create .claude directory if needed
-    if (!existsSync(CLAUDE_DIR)) {
-      mkdirSync(CLAUDE_DIR, { recursive: true });
-      console.log("Created ~/.claude directory");
-    }
-
     // Read existing CLAUDE.md or start fresh
     let content = "";
     if (existsSync(CLAUDE_MD)) {
@@ -60,7 +54,7 @@ function setup() {
         const endIdx = content.indexOf(MARKER_END) + MARKER_END.length;
         content = content.slice(0, startIdx) + KOWALSKI_CONFIG + content.slice(endIdx);
         writeFileSync(CLAUDE_MD, content);
-        console.log("✓ Kowalski config updated in ~/.claude/CLAUDE.md");
+        console.log("✓ Kowalski config updated in CLAUDE.md");
         return;
       }
     }
@@ -68,13 +62,12 @@ function setup() {
     // Append config
     content = content.trimEnd() + "\n\n" + KOWALSKI_CONFIG + "\n";
     writeFileSync(CLAUDE_MD, content);
-    console.log("✓ Kowalski added to ~/.claude/CLAUDE.md");
+    console.log("✓ Kowalski added to CLAUDE.md");
     console.log("  Data analysis will now use kowalski-analytics automatically");
 
   } catch (err) {
     // Fail silently - postinstall shouldn't break npm install
     console.log("Note: Could not auto-configure CLAUDE.md:", err.message);
-    console.log("You can manually add kowalski instructions to ~/.claude/CLAUDE.md");
   }
 }
 
