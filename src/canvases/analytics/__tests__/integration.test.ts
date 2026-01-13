@@ -12,7 +12,6 @@ import { generateEDAReport, type EDAReport } from "../insights";
 import { inferSchema, analyzeUnderstanding } from "../understanding";
 import { generateHypotheses, validateHypothesis } from "../hypotheses";
 import { findRelationships } from "../relationships";
-import { generateBrowserViz } from "../browser-viz";
 import { exportToCSV, exportToJSON } from "../export";
 import { MemoryManager } from "../memory";
 import { prepareForAnalysis, PerformanceTimer } from "../performance";
@@ -146,34 +145,6 @@ describe("Full Analysis Pipeline Integration", () => {
 
       const jsonData = parseData(SAMPLE_JSON, "data.json");
       expect(jsonData.rows.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe("Browser Visualization Flow", () => {
-    it("should generate complete HTML visualization", () => {
-      const data = parseCSV(SAMPLE_CSV, { name: "employees.csv" });
-      const analysis = analyzeDataSet(data);
-
-      const html = generateBrowserViz(data, analysis);
-
-      // Verify HTML structure
-      expect(html).toContain("<!DOCTYPE html>");
-      expect(html).toContain("Kowalski");
-      expect(html).toContain("Plotly");
-
-      // Should embed data
-      expect(html).toContain("employees.csv");
-    });
-
-    it("should support different themes", () => {
-      const data = parseCSV(SAMPLE_CSV, { name: "test.csv" });
-      const analysis = analyzeDataSet(data);
-
-      const darkHtml = generateBrowserViz(data, analysis, { type: "dashboard", theme: "dark" });
-      const lightHtml = generateBrowserViz(data, analysis, { type: "dashboard", theme: "light" });
-
-      expect(darkHtml).toContain("#111827"); // dark bg
-      expect(lightHtml).toContain("#f8fafc"); // light bg
     });
   });
 
@@ -365,14 +336,10 @@ describe("Full Analysis Pipeline Integration", () => {
       const report = generateEDAReport(processedData, analysis);
       timer.mark("6_report");
 
-      // Step 7: Generate visualization
-      const html = generateBrowserViz(processedData, analysis);
-      timer.mark("7_viz");
-
-      // Step 8: Export
+      // Step 7: Export
       const exportPath = join(TEST_DIR, "final.json");
       const exportResult = exportToJSON(processedData, analysis, report, exportPath);
-      timer.mark("8_export");
+      timer.mark("7_export");
 
       // Verify all steps completed successfully
       expect(data.rows.length).toBe(10);
@@ -380,7 +347,6 @@ describe("Full Analysis Pipeline Integration", () => {
       expect(schema.columns.length).toBe(7);
       expect(hypotheses.length).toBeGreaterThan(0);
       expect(report.findings.length).toBeGreaterThan(0);
-      expect(html).toContain("<!DOCTYPE html>");
       expect(exportResult.success).toBe(true);
 
       // Verify performance

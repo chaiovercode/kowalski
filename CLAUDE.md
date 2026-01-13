@@ -15,15 +15,20 @@ tmux && claude
 
 ```typescript
 import { readFileSync } from "fs";
-import { parseCSV, analyzeDataSet } from "${PLUGIN_DIR}/src/canvases/analytics";
-import { spawnAnalytics } from "${PLUGIN_DIR}/src/api";
+import {
+  parseCSV,
+  analyzeDataSet,
+  generateEDAReport,
+  spawnAnalytics,
+} from "kowalski-analytics";
 
 // Load and analyze data
 const csvContent = readFileSync("path/to/file.csv", "utf-8");
 const data = parseCSV(csvContent, { name: "file.csv" });
 const analysis = analyzeDataSet(data);
+const report = generateEDAReport(data, analysis);
 
-// Spawn canvas in tmux split pane (2/3 width on the right)
+// Spawn canvas in tmux split pane (opens tmux automatically if not in tmux)
 const result = await spawnAnalytics({
   title: "My Analysis",
   data,

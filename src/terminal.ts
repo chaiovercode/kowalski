@@ -177,15 +177,15 @@ async function spawnWithAutoTmux(command: string, scriptDir: string): Promise<bo
 async function spawnMacOSTerminal(command: string, sessionName: string): Promise<boolean> {
   const tmuxCommand = `tmux new-session -s '${sessionName}' '${command.replace(/'/g, "'\\''")}'`;
 
-  // Try Ghostty first (user preference)
-  if (await appExists("com.mitchellh.ghostty")) {
-    const result = await spawnGhostty(tmuxCommand);
+  // Try iTerm2 first (excellent scripting support)
+  if (await appExists("com.googlecode.iterm2")) {
+    const result = await spawnITerm(tmuxCommand);
     if (result) return true;
   }
 
-  // Try iTerm2
-  if (await appExists("com.googlecode.iterm2")) {
-    const result = await spawnITerm(tmuxCommand);
+  // Try Ghostty (checks CLI in app bundle, falls back to AppleScript)
+  if (await appExists("com.mitchellh.ghostty")) {
+    const result = await spawnGhostty(tmuxCommand);
     if (result) return true;
   }
 
@@ -203,33 +203,58 @@ async function appExists(bundleId: string): Promise<boolean> {
 }
 
 async function spawnGhostty(tmuxCommand: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    // Try ghostty CLI first, then fall back to open -a
-    try {
-      execSync("which ghostty", { stdio: "ignore" });
-      // Ghostty CLI: ghostty -e command
-      const proc = spawn("ghostty", ["-e", "/bin/bash", "-c", tmuxCommand], {
-        detached: true,
-        stdio: "ignore",
-      });
-      proc.unref();
-      setTimeout(() => resolve(true), 300);
-    } catch {
-      // Fall back to open -a with AppleScript for writing command
-      const script = `
-        tell application "Ghostty"
-          activate
-        end tell
-        delay 0.5
-        tell application "System Events"
-          keystroke "${tmuxCommand.replace(/"/g, '\\"')}"
+  return new Promise(async (resolve) => {
+    // Write command to a temp script for reliability
+    const scriptPath = `/tmp/kowalski-startup-${Date.now()}.sh`;
+    await Bun.write(scriptPath, `#!/bin/bash\n${tmuxCommand}\n`);
+    execSync(`chmod +x ${scriptPath}`);
+
+    // Try ghostty CLI - check PATH first, then app bundle
+    const ghosttyPaths = [
+      "ghostty",  // In PATH
+      "/Applications/Ghostty.app/Contents/MacOS/ghostty",  // App bundle
+    ];
+
+    for (const ghosttyPath of ghosttyPaths) {
+      try {
+        // Check if this path exists/works
+        if (ghosttyPath === "ghostty") {
+          execSync("which ghostty", { stdio: "ignore" });
+        } else {
+          execSync(`test -x "${ghosttyPath}"`, { stdio: "ignore" });
+        }
+
+        const proc = spawn(ghosttyPath, ["-e", "/bin/bash", "-c", `${scriptPath}; exec bash`], {
+          detached: true,
+          stdio: "ignore",
+        });
+        proc.unref();
+        setTimeout(() => resolve(true), 500);
+        return;
+      } catch {
+        // Try next path
+      }
+    }
+
+    // Fallback: AppleScript with keystroke (requires accessibility permissions)
+    const escapedPath = scriptPath.replace(/'/g, "'\\''");
+    const script = `
+      tell application "Ghostty"
+        activate
+      end tell
+      delay 1.0
+      tell application "System Events"
+        tell process "Ghostty"
+          keystroke "/bin/bash '${escapedPath}'"
           keystroke return
         end tell
-      `;
-      const proc = spawn("osascript", ["-e", script]);
-      proc.on("close", (code) => resolve(code === 0));
-      proc.on("error", () => resolve(false));
-    }
+      end tell
+    `;
+    const proc = spawn("osascript", ["-e", script]);
+    proc.on("close", (code) => {
+      setTimeout(() => resolve(code === 0), 500);
+    });
+    proc.on("error", () => resolve(false));
   });
 }
 

@@ -50,13 +50,6 @@ export {
   type DataRelationship,
 } from "./canvases/analytics/relationships";
 
-// Browser visualization
-export {
-  generateBrowserViz,
-  openBrowserViz,
-  type BrowserVizOptions,
-} from "./canvases/analytics/browser-viz";
-
 // Data export
 export {
   exportToCSV,

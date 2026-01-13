@@ -33,10 +33,6 @@
       "import": "./src/canvases/analytics/hypotheses.ts",
       "types": "./src/canvases/analytics/hypotheses.ts"
     },
-    "./browser-viz": {
-      "import": "./src/canvases/analytics/browser-viz.ts",
-      "types": "./src/canvases/analytics/browser-viz.ts"
-    },
     "./api": {
       "import": "./src/api/index.ts",
       "types": "./src/api/index.ts"

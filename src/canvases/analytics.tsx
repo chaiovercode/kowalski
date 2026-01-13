@@ -53,7 +53,7 @@ interface Props {
 }
 
 // Analysis phases
-type Phase = "loading" | "eda" | "selection" | "analysis" | "custom" | "browser";
+type Phase = "loading" | "eda" | "selection" | "analysis" | "custom";
 
 // Analysis options the user can choose
 interface AnalysisOption {
@@ -70,7 +70,6 @@ const ANALYSIS_OPTIONS: AnalysisOption[] = [
   { id: "outliers", label: "Outliers", description: "Find unusual values", icon: "⚠" },
   { id: "comparisons", label: "Comparisons", description: "Compare groups or categories", icon: "⚖" },
   { id: "summary", label: "Executive Summary", description: "Key findings overview", icon: "📋" },
-  { id: "browser", label: "Open in Browser", description: "Beautiful D3.js dashboard in browser", icon: "🌐" },
   { id: "custom", label: "Ask Claude", description: "Describe what you want to analyze", icon: "💬" },
 ];
 
@@ -220,8 +219,6 @@ export function AnalyticsCanvas({
 
     if (optionId === "custom") {
       setPhase("custom");
-    } else if (optionId === "browser") {
-      setPhase("browser");
     } else {
       setPhase("loading");
     }
@@ -636,39 +633,6 @@ export function AnalyticsCanvas({
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // PHASE: BROWSER (Open D3.js Dashboard)
-  // ═══════════════════════════════════════════════════════════════════════════
-  const renderBrowser = () => {
-    return (
-      <Box flexDirection="column" height={contentHeight} alignItems="center" justifyContent="center">
-        <Text color={THEME.primary} bold>
-          ╔══════════════════════════════════════════════════════╗
-        </Text>
-        <Text color={THEME.primary} bold>
-          ║  🌐 Opening Interactive Dashboard in Browser...      ║
-        </Text>
-        <Text color={THEME.primary} bold>
-          ╚══════════════════════════════════════════════════════╝
-        </Text>
-        <Box marginTop={2} flexDirection="column" alignItems="center">
-          <LoadingSpinner message="Generating D3.js visualizations..." />
-          <Box marginTop={1}>
-            <Text color={THEME.textDim}>Beautiful charts powered by Plotly and D3.js</Text>
-          </Box>
-        </Box>
-        <Box marginTop={3} flexDirection="column" alignItems="center">
-          <Text color={THEME.secondary}>Features:</Text>
-          <Text color={THEME.textDim}>• Interactive scatter matrix</Text>
-          <Text color={THEME.textDim}>• Correlation heatmap</Text>
-          <Text color={THEME.textDim}>• Distribution histograms</Text>
-          <Text color={THEME.textDim}>• Trend analysis</Text>
-          <Text color={THEME.textDim}>• Category breakdowns</Text>
-        </Box>
-      </Box>
-    );
-  };
-
-  // ═══════════════════════════════════════════════════════════════════════════
   // PHASE: CUSTOM (Ask Claude)
   // ═══════════════════════════════════════════════════════════════════════════
   const renderCustom = () => {
@@ -724,8 +688,6 @@ export function AnalyticsCanvas({
         return "SELECT ANALYSIS | ↑↓:Navigate │ ENTER:Select";
       case "analysis":
         return `${selectedAnalysis?.toUpperCase()} | B:Back │ Q:Quit`;
-      case "browser":
-        return "BROWSER | Opening D3.js dashboard...";
       case "custom":
         return "CUSTOM | Describe your analysis in terminal";
       default:
@@ -747,7 +709,6 @@ export function AnalyticsCanvas({
         {phase === "eda" && renderEDA()}
         {phase === "selection" && renderSelection()}
         {phase === "analysis" && renderAnalysis()}
-        {phase === "browser" && renderBrowser()}
         {phase === "custom" && renderCustom()}
       </Box>
 

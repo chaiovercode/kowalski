@@ -43,4 +43,3 @@ export {
   ExecutiveSummary,
   AnomalyAlert,
 } from "./components";
-export * from "./browser-viz";

@@ -54,7 +54,6 @@ Once installed, use the `/kowalski` slash command in Claude Code:
 - **Intelligent EDA** - Claude-like analysis that detects synthetic data, finds patterns, and provides actionable insights
 - **Terminal Visualizations** - High-resolution charts using braille characters (2x4 pixels per character)
 - **Two-Column Dashboard** - Analysis on the left, visualizations on the right
-- **Browser Visualizations** - Interactive Plotly dashboards when you need more detail
 - **Works with Any Dataset** - Generic column detection adapts to your data
 
 ## Programmatic Usage
@@ -96,7 +95,6 @@ import { ... } from "kowalski-analytics";
 // Specific modules
 import { ... } from "kowalski-analytics/analytics";
 import { ... } from "kowalski-analytics/insights";
-import { ... } from "kowalski-analytics/browser-viz";
 import { ... } from "kowalski-analytics/api";
 ```
 
@@ -110,7 +108,6 @@ import { ... } from "kowalski-analytics/api";
 | `generateEDAReport(data, analysis)` | Generate intelligent insights report |
 | `inferSchema(data)` | Infer semantic types for columns |
 | `generateHypotheses(data, analysis)` | Generate testable hypotheses |
-| `generateBrowserViz(data, analysis)` | Generate interactive HTML visualization |
 | `spawnAnalytics(config)` | Spawn terminal dashboard in tmux |
 
 ## Terminal Dashboard
@@ -193,7 +190,6 @@ kowalski/
 │   │       ├── components/      # Terminal UI components
 │   │       ├── insights.ts      # Intelligent EDA engine
 │   │       ├── data-loader.ts   # CSV/JSON parsing
-│   │       ├── browser-viz.ts   # Plotly visualizations
 │   │       └── ...
 │   ├── api/                     # Canvas spawning API
 │   ├── hooks/                   # Shared React hooks
