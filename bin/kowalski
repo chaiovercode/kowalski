@@ -1,0 +1,50 @@
+#!/usr/bin/env bun
+
+/**
+ * Kowalski CLI - Data analysis with memory
+ * Usage: kowalski <file.csv>
+ */
+
+import { readFileSync } from "fs";
+import { resolve, basename } from "path";
+import { parseCSV, analyzeDataSet, generateEDAReport, runDeepAnalysis, rememberAnalysis } from "../src/index.ts";
+
+const args = process.argv.slice(2);
+
+if (args.length === 0) {
+  console.log("Usage: kowalski <file.csv>");
+  console.log("       kowalski themes.csv");
+  process.exit(1);
+}
+
+const filepath = resolve(process.cwd(), args[0]);
+const filename = basename(filepath);
+
+try {
+  const content = readFileSync(filepath, "utf-8");
+  const data = parseCSV(content, { name: filename });
+
+  const analysis = analyzeDataSet(data);
+  const report = generateEDAReport(data, analysis);
+  const deep = runDeepAnalysis(data, analysis, report);
+
+  // Save to memory (creates kowalski.md)
+  await rememberAnalysis(data, analysis, deep, filepath);
+
+  // Output JSON for Claude to parse
+  console.log(JSON.stringify({
+    file: filename,
+    rows: data.rows.length,
+    columns: data.columns,
+    quality: deep.dataQuality.score,
+    headline: deep.story.headline,
+    findings: deep.story.keyFindings,
+    insights: deep.insights.slice(0, 5).map(i => ({ title: i.title, severity: i.severity, description: i.description })),
+    recommendations: deep.recommendations.slice(0, 3).map(r => ({ priority: r.priority, action: r.action })),
+    memory: "kowalski.md created"
+  }, null, 2));
+
+} catch (err) {
+  console.error("Error:", err.message);
+  process.exit(1);
+}

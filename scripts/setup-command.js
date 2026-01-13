@@ -21,28 +21,13 @@ const MARKER_START = "<!-- kowalski-analytics-start -->";
 const MARKER_END = "<!-- kowalski-analytics-end -->";
 
 const KOWALSKI_CONFIG = `${MARKER_START}
-## Data Analysis with Kowalski
+## Data Analysis
 
-**IMPORTANT:** When analyzing ANY CSV/JSON file, run this code with bun:
-
-\`\`\`bash
-bun -e "
-import { readFileSync } from 'fs';
-import { parseCSV, analyzeDataSet, generateEDAReport, runDeepAnalysis, rememberAnalysis } from '${KOWALSKI_ROOT}/src/index.ts';
-
-const filepath = 'FILENAME_HERE';  // Replace with actual file
-const content = readFileSync(filepath, 'utf-8');
-const data = parseCSV(content, { name: filepath.split('/').pop() });
-const analysis = analyzeDataSet(data);
-const report = generateEDAReport(data, analysis);
-const deep = runDeepAnalysis(data, analysis, report);
-await rememberAnalysis(data, analysis, deep, filepath);
-
-console.log(JSON.stringify({ rows: data.rows.length, columns: data.columns, quality: deep.dataQuality.score, story: deep.story, insights: deep.insights.slice(0,5), recommendations: deep.recommendations }, null, 2));
-"
+When analyzing data files, run:
 \`\`\`
-
-This creates \`kowalski.md\` with analysis memory.
+${KOWALSKI_ROOT}/bin/kowalski <filename>
+\`\`\`
+This saves analysis to \`kowalski.md\`.
 ${MARKER_END}`;
 
 function setup() {

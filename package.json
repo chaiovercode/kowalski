@@ -8,6 +8,9 @@
   "main": "src/index.ts",
   "module": "src/index.ts",
   "types": "src/index.ts",
+  "bin": {
+    "kowalski": "./bin/kowalski"
+  },
   "exports": {
     ".": {
       "import": "./src/index.ts",
@@ -24,8 +27,10 @@
   },
   "files": [
     "src",
+    "bin",
     "commands",
-    "sample_data"
+    "sample_data",
+    "scripts"
   ],
   "scripts": {
     "test": "bun test",
